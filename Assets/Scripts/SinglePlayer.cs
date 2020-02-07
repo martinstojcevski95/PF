@@ -64,12 +64,12 @@ public class SinglePlayer : MonoBehaviour
         renderer.enabled = false;
         playerStats.PlayerLocalPosition = transform.position;
 
+        playerStats.StartingPlayerLocalPosition = transform.position;
         playerType = PlayerType.player;
         Middle = GameObject.FindGameObjectWithTag("MiddlePlayer");
         canMove = false;
         isMiddleMoving = false;
 
-        playerStats.StartingPlayerLocalPosition = transform.position;
 
 
     }
@@ -92,23 +92,25 @@ public class SinglePlayer : MonoBehaviour
             play.Points = playerStats.Points;
             play.PointerPosition = playerStats.PointerPosition;
             play.PointerRotation = playerStats.PointerRotation;
+            play.PointerCounter = playerStats.PointerCounter;
             play.PlayerLocalPosition = playerStats.PlayerLocalPosition;// transform.position;
-          //  Debug.Log("punam data za formacija  i play" + GameManager.Instance.allFormations.AllFormmations[formationCountNumber].LinkedPlaysWithFormation[playsCounter].PlayName);
+            Debug.Log("data for player " + playerStats.PlayerID + " formation and play" + GameManager.Instance.allFormations.AllFormmations[formationCountNumber].FormationName + GameManager.Instance.allFormations.AllFormmations[formationCountNumber].LinkedPlaysWithFormation[playsCounter].PlayName);
             GameManager.Instance.allFormations.AllFormmations[formationCountNumber].LinkedPlaysWithFormation[playsCounter].LinkedPlayersWithPlays.Add(play);
         }
         else
         {
-            Debug.Log("saving for default formation");
-            // saving for default formation
+
             var play = new GameManager.Player();
             play.PlayerName = playerStats.PlayerName;
             play.PlayerID = playerStats.PlayerID;
             play.PlayerLocalPosition = playerStats.PlayerLocalPosition;// transform.position;
             GameManager.Instance.allFormations.AllFormmations[formationCountNumber].LinkedPlaysWithFormation[playsCounter].LinkedPlayersWithPlays.Add(play);
-
+            Debug.Log("saving for default formation");
         }
 
     }
+
+
 
     /// <summary>
     ///Using this. Load the formation data for  each player
@@ -122,39 +124,87 @@ public class SinglePlayer : MonoBehaviour
     /// <summary>
     /// Using this. Load the data for each player
     /// </summary>
-    public void LoadPlayData()
+    public void LoadPlayData(int formation,int play)
     {
+        playerStats.CanMove = true; // to not be able to move the players after loading formation
         if (playerStats.Points != null)
         {
-            //Debug.Log("WTF");
+            GameManager.Instance.RemovePointersAfterLoadingNewPlay();
             OnNewPathCreated(playerStats.Points);
             renderer.enabled = true;
             renderer.positionCount = playerStats.Points.Count;
             renderer.SetPositions(playerStats.Points.ToArray());
+            transform.position = playerStats.PlayerLocalPosition;
+            playerStats.PointerCounter = GameManager.Instance.allFormations.AllFormmations[formation].LinkedPlaysWithFormation[play].LinkedPlayersWithPlays[playerStats.PlayerID].PointerCounter;
+            if(playerStats.PointerCounter >0)
+            {
+                Debug.Log("pointer for player" + playerStats.PlayerID);
+
+                //instantiate i assign kako child ako nema pointer counter brisi pointer odma !!!
+                if(playerStats.PlayerPointerType == "arrow")
+                {
+                    var newArrow = Instantiate(GameManager.Instance.ArrowPref, playerStats.PointerPosition, playerStats.PointerRotation);
+                    newArrow.tag = "POINTER";
+                  //  newArrow.transform.parent = transform.GetChild(1).transform.parent;
+                }
+                else if (playerStats.PlayerPointerType == "block")
+                {
+                    var newBlock = Instantiate(GameManager.Instance.BlockPref, playerStats.PointerPosition, playerStats.PointerRotation);
+                    newBlock.tag = "POINTER";
+                    // newBlock.transform.parent = transform.GetChild(1).transform.parent;
+                }
+            }
+            else
+            {
+
+            }
+
             // transform.position = playerStats.PlayerLocalPosition;
-            if (playerStats.PlayerPointerType == "arrow")
-            {
+            //if (playerStats.PlayerPointerType == "arrow")
+            //{
+            //    if (playerStats.PointerCounter >= 0)
+            //    {
+            //        Debug.Log("instanciram ednas od igrac " + playerStats.PlayerID);
+            //        // instantiate pointer and populate data
+            //        var newArrow = Instantiate(GameManager.Instance.ArrowPref, playerStats.PointerPosition, playerStats.PointerRotation);
+            //        newArrow.AddComponent<Pointer>();
+            //        newArrow.GetComponent<Pointer>().PointerLocalPosition = playerStats.PointerPosition;
+            //        newArrow.GetComponent<Pointer>().PointerLocalRotation = playerStats.PointerRotation;
+            //    }
 
-                // instantiate pointer and populate data
-                var newArrow = Instantiate(GameManager.Instance.ArrowPref, playerStats.PointerPosition, playerStats.PointerRotation);
-                newArrow.AddComponent<Pointer>();
-                newArrow.GetComponent<Pointer>().PointerLocalPosition = playerStats.PointerPosition;
-                newArrow.GetComponent<Pointer>().PointerLocalRotation = playerStats.PointerRotation;
-            }
-            else if (playerStats.PlayerPointerType == "block")
-            {
-                var newBlock = Instantiate(GameManager.Instance.BlockPref, playerStats.PointerPosition, playerStats.PointerRotation);
-                newBlock.AddComponent<Pointer>();
-                newBlock.GetComponent<Pointer>().PointerLocalPosition = playerStats.PointerPosition;
-                newBlock.GetComponent<Pointer>().PointerLocalRotation = playerStats.PointerRotation;
-            }
+            //}
+            //else if (playerStats.PlayerPointerType == "block")
+            //{
+            //    if (playerStats.PointerCounter >= 0)
+            //    {
+            //        var newBlock = Instantiate(GameManager.Instance.BlockPref, playerStats.PointerPosition, playerStats.PointerRotation);
+            //        newBlock.AddComponent<Pointer>();
+            //        newBlock.GetComponent<Pointer>().PointerLocalPosition = playerStats.PointerPosition;
+            //        newBlock.GetComponent<Pointer>().PointerLocalRotation = playerStats.PointerRotation;
+            //    }
 
+            //}
 
         }
         else
         {
+            Debug.Log("sdsdsdsdsd");
             transform.position = playerStats.PlayerLocalPosition;
         }
+    }
+
+    public void PreviewPlayOnlyWithoutPointers()
+    {
+        playerStats.CanMove = true; // to not be able to move the players after loading formation
+        if (playerStats.Points != null)
+        {
+            OnNewPathCreated(playerStats.Points);
+            renderer.enabled = true;
+            renderer.positionCount = playerStats.Points.Count;
+            renderer.SetPositions(playerStats.Points.ToArray());
+            transform.position = playerStats.PlayerLocalPosition;
+        }
+
     }
     //save it as position
     //search by name
@@ -382,19 +432,31 @@ public class SinglePlayer : MonoBehaviour
                 var foundPlayer = hitInfo.transform.GetComponent<SinglePlayer>();
                 if (foundPlayer != null)
                 {
-                    Debug.Log("clicked on player");
+                    //  Debug.Log("clicked on player");
+
                     CameraMovement.Instance.isPanning = false;
                     GameManager.Instance.CanDrawIfSelected = true;
+                    if(foundPlayer.playerStats.CanMove)
+                        UIManager.Instance.SelectTextType("Drawing for player " + foundPlayer.playerStats.PlayerID, "success", 1f);
 
                 }
                 else
                 {
+                    UIManager.Instance.SelectTextType("", "", 0f);
                     GameManager.Instance.CanDrawIfSelected = false;
                     CameraMovement.Instance.isPanning = true;
-
+                        UIManager.Instance.SelectTextType("" , "", 0f);
                 }
 
             }
+
+
+            //if (pathMover.navmeshagent.remainingDistance == 0)
+            //{
+            //    Debug.Log("reached end of the road");
+            //    playerNav.enabled = false;
+            //    pathMover.enabled = false;
+            //}
 
         }
 
@@ -431,13 +493,14 @@ public class SinglePlayer : MonoBehaviour
 
 
 
-        if(transform.position != null)
-        {
-            if (GameManager.Instance.InFormation)
-                playerStats.CanMove = false;
-            else
-                playerStats.CanMove = true;
-        }
+        //if(transform.position != null)
+        //{
+        //    if (GameManager.Instance.InFormation)
+        //        playerStats.CanMove = false;
+        //    else
+        //        playerStats.CanMove = true;
+        //}
+
     }
 
     public void ActivatelayerPath()
@@ -454,7 +517,7 @@ public class SinglePlayer : MonoBehaviour
     {
         foreach (var item in GameManager.Instance.allPlayers)
         {
-            if(item.GetComponentInChildren<MeshRenderer>() != null)
+            if (item.GetComponentInChildren<MeshRenderer>() != null)
             {
                 item.GetComponentInChildren<MeshRenderer>().enabled = false;
 
@@ -668,6 +731,7 @@ public class SinglePlayer : MonoBehaviour
         public Vector3 PointerPosition;
         public Quaternion PointerRotation;
         public List<Vector3> Points;
+        public int PointerCounter;
     }
 
 }

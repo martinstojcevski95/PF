@@ -50,6 +50,8 @@ public class PathCreator : MonoBehaviour
             pointerType = PointerType.arrow;
             PointerHolder.transform.GetChild(0).gameObject.SetActive(true);
             PointerHolder.transform.GetChild(1).gameObject.SetActive(false);
+            UIManager.Instance.Arrow.interactable = false;
+            UIManager.Instance.Block.interactable = true;
         }
 
         if (pointertype == "Block")
@@ -57,6 +59,8 @@ public class PathCreator : MonoBehaviour
             pointerType = PointerType.block;
             PointerHolder.transform.GetChild(0).gameObject.SetActive(false);
             PointerHolder.transform.GetChild(1).gameObject.SetActive(true);
+            UIManager.Instance.Arrow.interactable = true;
+            UIManager.Instance.Block.interactable = false;
         }
     }
 
@@ -82,6 +86,7 @@ public class PathCreator : MonoBehaviour
                 {
                     if (GameManager.Instance.CanDrawIfSelected)
                     {
+             
                         PointerHolder.transform.position = hitInfo.transform.position;
                         PointerHolder.SetActive(true);
                         points.Add(hitInfo.point);
@@ -89,11 +94,11 @@ public class PathCreator : MonoBehaviour
                         lineRenderer.positionCount = points.Count;
                         lineRenderer.SetPositions(points.ToArray());
                         //  lineRenderer.SetPosition(0, new Vector3(-100, -1000, 0)); // hide the first line bug
-                        if (lineRenderer.positionCount >= 3)
+                        if (lineRenderer.positionCount >= 2)
                         {
-
+                        
                             int index = lineRenderer.positionCount - 1;
-                            int secondToLastIndex = lineRenderer.positionCount - 2;
+                            int secondToLastIndex = lineRenderer.positionCount-2;
 
                             Vector3 arrowloc = lineRenderer.GetPosition(index);
 
@@ -115,6 +120,7 @@ public class PathCreator : MonoBehaviour
                             PointerHolder.transform.rotation = Quaternion.Euler(0, transform.rotation.eulerAngles.y, 90);
                             PointerHolder.transform.LookAt(arrowNearEnd, Vector3.left);
                         }
+                    
 
                     }
 
@@ -145,16 +151,17 @@ public class PathCreator : MonoBehaviour
                 newLine.material = drawnLineMaterial;
                 newLine.endWidth = 0.15f;
                 newLine.startWidth = 0.15f;
-
+                newLine.tag = "POINTER";
 
 
                 int pointsNumber = points.Count;
-                if (newLine.positionCount >= 3)
+                if (newLine.positionCount >= 2)
                 {
+
                     //  newLine.SetPosition(0, new Vector3(-100, -1000, 0)); // hide the first line bug
                     // obj.SetActive(true);
                     var lastpositionVector = points[pointsNumber - 1];
-                    //  Debug.Log("last point is " + lastpositionVector);
+
                     if (pointerType == PointerType.arrow)
                     {
 
@@ -170,6 +177,7 @@ public class PathCreator : MonoBehaviour
                             newArrow.GetComponent<Pointer>().PointerLocalRotation = newArrow.transform.rotation;
                             newArrow.GetComponent<Pointer>().PointerLocalPosition = newArrow.transform.position;
                             newArrow.GetComponent<Pointer>().SinglePointerType = "arrow";
+                            newArrow.GetComponent<Pointer>().PointerCounter = 1;
                             if (GameManager.Instance.allPlayers[newArrow.GetComponent<Pointer>().SelectedPlayerPointerID].playerStats.HasDrawnedLine == false)
                             {
                                 GameManager.Instance.allPlayers[newArrow.GetComponent<Pointer>().SelectedPlayerPointerID].playerStats.HasDrawnedLine = true;
@@ -185,6 +193,7 @@ public class PathCreator : MonoBehaviour
                                 GameManager.Instance.allPlayers[newArrow.GetComponent<Pointer>().SelectedPlayerPointerID].playerStats.PointerRotation = newArrow.transform.rotation; // pointer rot
 
                                 GameManager.Instance.allPlayers[newArrow.GetComponent<Pointer>().SelectedPlayerPointerID].playerStats.PlayerPointerType = newArrow.GetComponent<Pointer>().SinglePointerType;// pointer type
+                                GameManager.Instance.allPlayers[newArrow.GetComponent<Pointer>().SelectedPlayerPointerID].playerStats.PointerCounter = 1;
 
 
                                 GameManager.Instance.allPlayers[newArrow.GetComponent<Pointer>().SelectedPlayerPointerID].pathMover.SetPoints(GameManager.Instance.allPlayers[newArrow.GetComponent<Pointer>().SelectedPlayerPointerID].playerStats.Points); // movign the player for the drawn points
@@ -214,6 +223,7 @@ public class PathCreator : MonoBehaviour
                             newBlock.GetComponent<Pointer>().SelectedPlayerPointerID = GameManager.Instance.SelectedPlayerID;
                             newBlock.GetComponent<Pointer>().PointerLocalRotation = newBlock.transform.rotation;
                             newBlock.GetComponent<Pointer>().PointerLocalPosition = newBlock.transform.position;
+                            newBlock.GetComponent<Pointer>().PointerCounter = 1;
                             //GameManager.Instance.allPlayers[newBlock.GetComponent<Pointer>().SelectedPlayerPointerID].singlePlayer.PointerPositionOnly = newBlock.GetComponent<Pointer>().PointerLocalPosition;
                             newBlock.GetComponent<Pointer>().SinglePointerType = "block";
                             if (GameManager.Instance.allPlayers[newBlock.GetComponent<Pointer>().SelectedPlayerPointerID].playerStats.HasDrawnedLine == false)
@@ -231,13 +241,13 @@ public class PathCreator : MonoBehaviour
                                 GameManager.Instance.allPlayers[newBlock.GetComponent<Pointer>().SelectedPlayerPointerID].playerStats.PointerRotation = newBlock.transform.rotation; // pointer rot
 
                                 GameManager.Instance.allPlayers[newBlock.GetComponent<Pointer>().SelectedPlayerPointerID].playerStats.PlayerPointerType = newBlock.GetComponent<Pointer>().SinglePointerType;// pointer type
-
+                                GameManager.Instance.allPlayers[newBlock.GetComponent<Pointer>().SelectedPlayerPointerID].playerStats.PointerCounter = 1;
 
                                 GameManager.Instance.allPlayers[newBlock.GetComponent<Pointer>().SelectedPlayerPointerID].pathMover.SetPoints(GameManager.Instance.allPlayers[newBlock.GetComponent<Pointer>().SelectedPlayerPointerID].playerStats.Points); // movign the player for the drawn points
                             }
                             else
                             {
-                                Destroy(newLine.gameObject);
+                               Destroy(newLine.gameObject);
                             }
                         }
 
@@ -248,7 +258,6 @@ public class PathCreator : MonoBehaviour
                    Destroy(newLine.gameObject);
                 }
             }
-
         }
 
         //DELETE DRAWN LINE

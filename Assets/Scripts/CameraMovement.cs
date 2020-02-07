@@ -56,6 +56,15 @@ public class CameraMovement : MonoBehaviour
         InGame = true;
     }
 
+    public void PausePanning()
+    {
+        InGame = false;
+    }
+
+    public void ResumePanning()
+    {
+        InGame = true;
+    }
 
     // Update is called once per frame
     void Update()

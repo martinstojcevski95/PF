@@ -19,15 +19,27 @@ public class UIManager : MonoBehaviour
     public RectTransform SaveFormationPopUp;
     public RectTransform LoadFormationPopUp;
     public RectTransform NewFormatonAndPlay;
+    public RectTransform ContinueNewPlayOrNewFormation;
     public Canvas PopUpCanvas;
     public Button Planning;
-    public Button View3D;
+    public Button View3D,View2D;
     public Button DefensePlayer;
     public RectTransform Menu;
     public Image fillImage;
     float waitTime;
     bool isClicked;
     public int currentPlayers;
+    public Dropdown LoadFormations;
+
+
+
+    public Button SaveFormationDropDown,LoadFormationDropDown;
+    public Button SavePlayUI;
+    public Button Arrow, Block;
+    public Button ResetFormation,LoadPlayUI;
+    public Button RemoveLines;
+
+    bool isMenuOpened;
     void Awake()
     {
         Instance = this;
@@ -36,7 +48,13 @@ public class UIManager : MonoBehaviour
 
     void Start()
     {
+        RemoveLines.interactable = false;
+        LoadPlayUI.interactable = false;
+        Block.interactable = false;
+        isMenuOpened = true;
         View3D.interactable = false;
+        View2D.interactable = false;
+        SavePlayUI.interactable = false;
         Loading.gameObject.SetActive(true);
 
     }
@@ -90,14 +108,25 @@ public class UIManager : MonoBehaviour
         //    fillImage.transform.position = Input.mousePosition;
         //    isClicked = true;
         //}
+
     }
 
 
     public void OpenMenu()
     {
-        Menu.DOAnchorPos(new Vector2(170, 0), 0.5f);
-        // CameraMovement.Instance.DisablePanning();
-        CameraMovement.Instance.InGame = false;
+        if(isMenuOpened)
+        {
+            Menu.DOAnchorPos(new Vector2(170, 0), 0.5f);
+           // CameraMovement.Instance.InGame = false;
+            isMenuOpened = false;
+        }
+        else
+        {
+            CameraMovement.Instance.InGame = true;
+            Menu.DOAnchorPos(new Vector2(-190, 0), 0.5f);
+            isMenuOpened = true;
+        }
+
     }
     public void CloseMenu()
     {
@@ -133,6 +162,21 @@ public class UIManager : MonoBehaviour
             SavePlayPopUp.DOAnchorPos(new Vector2(0, 1000), 0.5f);
 
     }
+    public void  ContinueNewPlayOrMakeNewFormation(bool t)
+    {
+        PopUpCanvas.enabled = t;
+
+        if (t)
+        {
+            ContinueNewPlayOrNewFormation.DOAnchorPos(new Vector2(0, 0), 0.5f);
+        }
+        else
+        {
+            ContinueNewPlayOrNewFormation.DOAnchorPos(new Vector2(0, 1000), 0.5f);
+        }
+    }
+
+
     public void LoadPlay(bool t)
     {
 
@@ -144,9 +188,12 @@ public class UIManager : MonoBehaviour
 
         }
         else
+        {
             LoadPlayPopUp.DOAnchorPos(new Vector2(0, 1000), 0.5f);
 
-        CameraMovement.Instance.EnablePanning();
+            CameraMovement.Instance.EnablePanning();
+        }
+
     }
     public void LoadNewPlayOrFormation(bool t)
     {
@@ -203,19 +250,20 @@ public class UIManager : MonoBehaviour
         //LoadPlay(false);
         //SaveFormation(false);
         //LoadFormation(false);
+        PopUpCanvas.enabled = false;
         SavePlayPopUp.DOAnchorPos(new Vector2(0, 1000), 0.5f);
         LoadFormationPopUp.DOAnchorPos(new Vector2(0, 1000), 0.5f);
         SaveFormationPopUp.DOAnchorPos(new Vector2(0, 1000), 0.5f);
         LoadPlayPopUp.DOAnchorPos(new Vector2(0, 1000), 0.5f);
-
+        ContinueNewPlayOrNewFormation.DOAnchorPos(new Vector2(0, 1000),0.5f);
 
         NewFormatonAndPlay.DOAnchorPos(new Vector2(0, 1000), 0.5f);
         // NewFormatonAndPlay.gameObject.SetActive(false);
-        for (int i = 0; i < GameManager.Instance.allPlayers.Count; i++)
-        {
-            GameManager.Instance.allPlayers[i].canMove = true;
-        }
-        CameraMovement.Instance.EnablePanning();
+        //for (int i = 0; i < GameManager.Instance.allPlayers.Count; i++)
+        //{
+        //    GameManager.Instance.allPlayers[i].canMove = true;
+        //}
+       // CameraMovement.Instance.EnablePanning();
 
     }
 

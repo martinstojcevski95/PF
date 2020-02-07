@@ -66,10 +66,10 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     PlaysNameHolder playsNamesHolder;
 
+    bool InNewFormation;
+
     void Awake()
     {
-
-
         LoadingSpeed = 1 / 1.8f;
         Instance = this;
         formationCounter = allFormations.AllFormmations.Count;
@@ -183,27 +183,58 @@ public class GameManager : MonoBehaviour
         allFormations.AllFormmations.Add(formation);
         InFormation = false;
         UIManager.Instance.SelectTextType("Formation has been saved!", "success", 2f);
-        //     var players = FindObjectsOfType<SinglePlayer>();
-
-        //   DrawingMode(); // call this on create new formation
-
-        //    StartMovingThePlayers(true);
+        UIManager.Instance.SaveFormationPopUp.DOAnchorPos(new Vector2(0, 1000), 0.5f);
+        UIManager.Instance.ResetFormation.interactable = false;
+        UIManager.Instance.RemoveLines.interactable = true;
+        CameraMovement.Instance.InGame = true;
     }
+
+    public void DestroyPointsAndLines()
+    {
+        var pointsandlines = GameObject.FindGameObjectsWithTag("POINTER");
+        if (pointsandlines != null)
+        {
+            foreach (var item in pointsandlines)
+            {
+                Destroy(item);
+            }
+        }
+    }
+
+    void ResetOnlyThePlayersPositionToDefault()
+    {
+
+        for (int i = 0; i < allPlayers.Count; i++)
+        {
+            allPlayers[i].transform.position = allPlayers[i].playerStats.StartingPlayerLocalPosition;
+            allPlayers[i].playerStats.PlayerLocalPosition = allPlayers[i].playerStats.StartingPlayerLocalPosition;
+
+
+        }
+    }
+
 
     public void SaveDefaultPlayOnFormationReset()
     {
         // UIManager.Instance.SaveFormationPopUp.DOAnchorPos(new Vector2(0, 1000), 0.5f);
         InFormation = true;
-
         SavingPlay(placeHolder);
-
+        pathCreator.PointerHolder.SetActive(false);
+        UIManager.Instance.SavePlayUI.interactable = false;
+        DestroyPointsAndLines();
+        // reset the players position to default 
+        ResetOnlyThePlayersPositionToDefault();
+        // reset player pointer count to 0
+        UIManager.Instance.RemoveLines.interactable = false;
     }
 
     public void StartNewPlayWithOnlyDrawing()
     {
         UIManager.Instance.NewFormatonAndPlay.DOAnchorPos(new Vector2(0, 1000), 0.5f);
+        UIManager.Instance.SavePlayUI.interactable = true;
         DrawingMode();
     }
+
 
 
     /// <summary>
@@ -212,6 +243,15 @@ public class GameManager : MonoBehaviour
     /// <param name="playname"></param>
     void SavingPlay(InputField playname)
     {
+        //var pointers = FindObjectsOfType<Pointer>();
+        //if (pointers != null)
+        //{
+        //    foreach (var item in pointers)
+        //    {
+        //        Destroy(item.transform.parent.gameObject);
+        //    }
+        //}
+
         formationCounter = allFormations.AllFormmations.Count;
         var newPlay = new Play();
 
@@ -224,7 +264,10 @@ public class GameManager : MonoBehaviour
             if (newPlay.PlayName == "")
             {
                 newPlay.PlayName = allFormations.AllFormmations[formationCounter - 1].FormationName + " Formation";
+
                 UIManager.Instance.SelectTextType("Play has been saved with deault name of the formation!", "success", 2f);
+                UIManager.Instance.LoadFormationDropDown.interactable = false;
+
 
             }
             var players = FindObjectsOfType<SinglePlayer>();
@@ -235,18 +278,19 @@ public class GameManager : MonoBehaviour
             {
                 foreach (var item in players)
                 {
-
                     item.Populate(formationCounter - 1, playsCounter - 1);
 
                 }
             }
+            UIManager.Instance.LoadFormationDropDown.interactable = false;
             StartCoroutine(LateSaveEverything());
-        }
+            }
         else
         {
             if (allFormations.AllFormmations[formationCounter - 1].LinkedPlaysWithFormation.Exists(name => name.PlayName == newPlay.PlayName))
             {
                 UIManager.Instance.SelectTextType("Play with that name already exists in formation " + allFormations.AllFormmations[formationCounter - 1].FormationName + " please choose  different name", "error", 3f);
+
             }
             else
             {
@@ -254,6 +298,7 @@ public class GameManager : MonoBehaviour
                 {
                     newPlay.PlayName = allFormations.AllFormmations[formationCounter - 1].FormationName + " Formation";
                     UIManager.Instance.SelectTextType("Play has been saved with deault name of the formation!", "success", 2f);
+                    UIManager.Instance.LoadFormationDropDown.interactable = false;
 
                 }
                 var players = FindObjectsOfType<SinglePlayer>();
@@ -265,45 +310,63 @@ public class GameManager : MonoBehaviour
                 {
                     foreach (var item in players)
                     {
-
                         item.Populate(formationCounter - 1, playsCounter - 1);
 
                     }
-                }
-                UIManager.Instance.SelectTextType("Play has been saved!", "success", 2f);
 
+                }
+
+                UIManager.Instance.LoadFormationDropDown.interactable = false;
                 StartCoroutine(LateSaveEverything());
             }
         }
-
         formationCounter += 1;
-        InFormation = true;
+        pathCreator.PointerHolder.SetActive(false);
+        pathCreator.lineRenderer.positionCount = 0;
+        pathCreator.enabled = false;
 
+        //  InFormation = true;
     }
 
+    //public void ResetFormationPosition()
+    //{
+    //    //for (int i = 0; i < allPlayers.Count; i++)
+    //    //{
+    //    //    allPlayers[i].transform.position = allPlayers[i].playerStats.StartingPlayerLocalPosition;
+    //    //}
+    //    GoBackToDefaultViewAfterSavingFormationAndPlay();
+      
+    //    InFormation = true;
+    //    UIManager.Instance.SelectTextType("Formation has be reseted to the default one", "success", 1.5f);
+    //}
 
-    public void ResetPlayersForNewDrawAfterPlayIsSaved()
+
+    public void ContinueDrawing()
     {
-      // remove the newly added players on reset if needed
+        // remove the newly added players on reset if needed
         for (int i = 0; i < allPlayers.Count; i++)
         {
             allPlayers[i].playerStats.Points.Clear();
-            allPlayers[i].transform.position = allPlayers[i].playerStats.StartingPlayerLocalPosition;
+            allPlayers[i].playerStats.HasDrawnedLine = false;
             allPlayers[i].playerStats.PointerRotation = new Quaternion(0, 0, 0, 0);
             allPlayers[i].GetComponent<LineRenderer>().positionCount = 0;
+            allPlayers[i].playerStats.PointerPosition = new Vector3(0, 0, 0);
+            allPlayers[i].playerStats.PointerCounter = 0;
         }
         pathCreator.GetComponent<LineRenderer>().positionCount = 0;
-        pathCreator.enabled = false;
         pathCreator.PointerHolder.SetActive(false);
-        var pointers = FindObjectsOfType<Pointer>();
-        if (pointers != null)
-        {
-            foreach (var item in pointers)
-            {
-                Destroy(item.transform.parent.gameObject);
-            }
-        }
+        UIManager.Instance.RemoveLines.interactable = true;
+        DestroyPointsAndLines();
+        DrawingMode();
     }
+
+
+
+    public void DefaultPlayPopulation()
+    {
+
+    }
+
 
     public void RecenterCamerView()
     {
@@ -311,7 +374,7 @@ public class GameManager : MonoBehaviour
         Camera.main.transform.rotation = CameraDefaultRotation;
     }
 
-    public void GoBackToDefaultViewAfterSavingFormationAndPlay()
+    public void ReturnToDefaultFormation()
     {
         CameraMovement.Instance.isPanning = true;
         for (int i = 0; i < allPlayers.Count; i++)
@@ -319,63 +382,68 @@ public class GameManager : MonoBehaviour
             allPlayers[i].GetComponent<LineRenderer>().positionCount = 0;
             allPlayers[i].playerNav.enabled = false;
             allPlayers[i].pathMover.enabled = false;
+            allPlayers[i].playerStats.PointerCounter = 0;
             allPlayers[i].playerStats.Points.Clear();
             allPlayers[i].transform.position = allPlayers[i].playerStats.StartingPlayerLocalPosition;
+            allPlayers[i].playerStats.PlayerLocalPosition = allPlayers[i].playerStats.StartingPlayerLocalPosition;
             allPlayers[i].playerStats.CanMove = false;
-
+            allPlayers[i].playerStats.HasDrawnedLine = false;
         }
 
         pathCreator.GetComponent<LineRenderer>().positionCount = 0;
         pathCreator.enabled = false;
         pathCreator.PointerHolder.SetActive(false);
-        var pointers = FindObjectsOfType<Pointer>();
-        if (pointers != null)
-        {
-            foreach (var item in pointers)
-            {
-                Destroy(item.transform.parent.gameObject);
-            }
-        }
+        DestroyPointsAndLines();
         Camera.main.transform.position = CameraDefaultView;
         Camera.main.transform.rotation = CameraDefaultRotation;
         UIManager.Instance.View3D.interactable = false;
         UIManager.Instance.CloseAllPopUps();
+        InFormation = true;
+        UIManager.Instance.SelectTextType("Formation has be reseted to the default one", "success", 1.5f);
+        LoadFullData();
     }
 
 
     /// <summary>
     /// Using this. Populating UI data for the formations and plays from the JSON 
     /// </summary>
-    void PopulateDropdownDataForFormationsAndPlays()
-    {
-        //var info = new DirectoryInfo(Application.dataPath);
-        //var fileinfo = info.GetFiles("*.png");
+    //void PopulateDropdownDataForFormationsAndPlays()
+    //{
+    //    //var info = new DirectoryInfo(Application.dataPath);
+    //    //var fileinfo = info.GetFiles("*.png");
 
-        //foreach (var item in fileinfo)
-        //{
-        //    string[] x = item.Name.Split('.');
+    //    //foreach (var item in fileinfo)
+    //    //{
+    //    //    string[] x = item.Name.Split('.');
 
-        //    foreach (var s in x)
-        //    {
-        //        if (s != "png")
-        //        {
-        //            Debug.Log(s);
-        //            ScreenShotsNames.Add(s);
-        //        }
-        //    }
-        //}
-
-        for (int i = 0; i < allFormations.AllFormmations.Count; i++)
-        {
-
-            FormationsName.Add(allFormations.AllFormmations[i].FormationName);
-        }
-        FORMATIONS.ClearOptions();
-        FORMATIONS.AddOptions(FormationsName);
+    //    //    foreach (var s in x)
+    //    //    {
+    //    //        if (s != "png")
+    //    //        {
+    //    //            Debug.Log(s);
+    //    //            ScreenShotsNames.Add(s);
+    //    //        }
+    //    //    }
+    //    //}
 
 
 
-    }
+    //    //FORMATIONS.ClearOptions();
+    //    //for (int i = 0; i < allFormations.AllFormmations.Count; i++)
+    //    //{
+
+    //    //    FormationsName.Add(allFormations.AllFormmations[i].FormationName);
+    //    //}
+
+    //    //FORMATIONS.AddOptions(FormationsName);
+
+
+    //    //UIManager.Instance.LoadFormationDropDown.interactable = true;
+    //    //UIManager.Instance.LoadNewPlayOrFormation(true);
+
+    //}
+
+
 
 
     public void FormationPreviewForPlays(Toggle selectedItem)
@@ -398,17 +466,15 @@ public class GameManager : MonoBehaviour
     //temp.LoadImage(test);
     //        WTF.texture = temp;
 
-    /// <summary>
-    /// Using this. Switching the field of the view 2D/3D
-    /// </summary>
-    /// <param name="t"></param>
-    public void SwitchCameraView(bool t)
+
+     IEnumerator DelayedPlayersMovement(bool t)
     {
         if (t)
         {
 
             Camera.main.transform.position = Camera3DView;
             Camera.main.transform.rotation = Camera3DRotation;
+            yield return new WaitForSeconds(1f);
             foreach (var item in allPlayers)
             {
                 item.playerNav.enabled = true;
@@ -432,6 +498,42 @@ public class GameManager : MonoBehaviour
 
             }
         }
+    }
+    /// <summary>
+    /// Using this. Switching the field of the view 2D/3D
+    /// </summary>
+    /// <param name="t"></param>
+    public void SwitchCameraView(bool t)
+    {
+        StartCoroutine(DelayedPlayersMovement(t));
+        //if (t)
+        //{
+
+        //    Camera.main.transform.position = Camera3DView;
+        //    Camera.main.transform.rotation = Camera3DRotation;
+        //    foreach (var item in allPlayers)
+        //    {
+        //        item.playerNav.enabled = true;
+        //        item.pathMover.enabled = true;
+        //        item.pathMover.SetPoints(item.playerStats.Points);
+        //        //item.renderer.SetPosition(0, new Vector3(-100, -100, 0));
+        //    }
+
+
+        //}
+        //else
+        //{
+
+        //    Camera.main.transform.position = CameraDefaultView;
+        //    Camera.main.transform.rotation = CameraDefaultRotation;
+        //    foreach (var item in allPlayers)
+        //    {
+        //        item.playerNav.enabled = false;
+        //        item.pathMover.enabled = false;
+        //        item.transform.position = item.playerStats.PlayerLocalPosition;
+
+        //    }
+        //}
 
 
     }
@@ -472,7 +574,10 @@ public class GameManager : MonoBehaviour
         PLAYS.ClearOptions();
         PLAYS.AddOptions(new List<string> { "Choose Play" });
         PLAYS.AddOptions(PlaysNames);
+        PLAYS.RefreshShownValue();
         UIManager.Instance.LoadFormation(false);
+        UIManager.Instance.LoadPlayUI.interactable = true;
+        CameraMovement.Instance.InGame = true;
     }
 
     void Update()
@@ -492,117 +597,134 @@ public class GameManager : MonoBehaviour
         UIManager.Instance.currentPlayers = allPlayers.Count;
     }
 
-    public void PlayPreview(Toggle item)
-    {
+    //public void PlayPreview(Toggle item)
+    //{
 
-        //var i = item.GetComponentInChildren<Text>().text;
-        //var plays = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation;
-        //foreach (var ss in plays)
-        //{
-        //    if (ss.PlayName.Contains(i))
-        //    {
-        //        Debug.Log(ss.PlayName);
-        //        selectedPlayIDForPreview = ss.PlayID;
-        //    }
-        //}
+    //    //var i = item.GetComponentInChildren<Text>().text;
+    //    //var plays = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation;
+    //    //foreach (var ss in plays)
+    //    //{
+    //    //    if (ss.PlayName.Contains(i))
+    //    //    {
+    //    //        Debug.Log(ss.PlayName);
+    //    //        selectedPlayIDForPreview = ss.PlayID;
+    //    //    }
+    //    //}
 
-        //inPreview = true;
-    }
+    //    //inPreview = true;
+    //}
 
-    public void GetPlayIDValue(Dropdown play)
-    {
+    //public void GetPlayIDValue(Dropdown play)
+    //{
 
-        //selectedPlayIDForPreview = play.GetComponent<Dropdown>().value;
-        //Debug.Log(allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[selectedPlayIDForPreview].PlayName);
-        ////   Debug.Log(allFormations.AllFormmations[selectedFormationIDForPreview].LinkedPlaysWithFormation[selectedPlayIDForPreview].PlayName);
-        //int playersCountForPlay = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[selectedPlayIDForPreview].LinkedPlayersWithPlays.Count;
-        ////Debug.Log(" Selecting play on  hover " + allFormations.AllFormmations[selectedFormationIDForPreview].LinkedPlaysWithFormation[selectedPlayIDForPreview].PlayName);
+    //    //selectedPlayIDForPreview = play.GetComponent<Dropdown>().value;
+    //    //Debug.Log(allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[selectedPlayIDForPreview].PlayName);
+    //    ////   Debug.Log(allFormations.AllFormmations[selectedFormationIDForPreview].LinkedPlaysWithFormation[selectedPlayIDForPreview].PlayName);
+    //    //int playersCountForPlay = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[selectedPlayIDForPreview].LinkedPlayersWithPlays.Count;
+    //    ////Debug.Log(" Selecting play on  hover " + allFormations.AllFormmations[selectedFormationIDForPreview].LinkedPlaysWithFormation[selectedPlayIDForPreview].PlayName);
 
-        //for (int i = 0; i < allPlayers.Count; i++)
-        //{
-        //    allPlayers[i].playerStats.Points = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[selectedPlayIDForPreview].LinkedPlayersWithPlays[i].Points;
-        //    allPlayers[i].LoadPlayData();
-        //}
-        //var players = FindObjectsOfType<SinglePlayer>();
-        //if (players != null)
-        //{
-        //    for (int i = 0; i < playersCountForPlay; i++)
-        //    {
-        //        if (allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[selectedPlayIDForPreview].LinkedPlayersWithPlays[i].PlayerID == players[i].playerStats.PlayerID)
-        //        {
-        //            players[i].playerStats.Points = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[selectedPlayIDForPreview].LinkedPlayersWithPlays[i].Points;
-        //            players[i].playerStats.PlayerPointerType = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[selectedPlayIDForPreview].LinkedPlayersWithPlays[i].PlayerPointerType;
-        //            players[i].playerStats.PointerPosition = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[selectedPlayIDForPreview].LinkedPlayersWithPlays[i].PointerPosition;
-        //            players[i].playerStats.PointerRotation = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[selectedPlayIDForPreview].LinkedPlayersWithPlays[i].PointerRotation;
-        //            players[i].playerStats.PlayerLocalPosition = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[selectedPlayIDForPreview].LinkedPlayersWithPlays[i].PlayerLocalPosition;
-        //            players[i].LoadPlayData();
-        //            players[i].LoadFormationData();
+    //    //for (int i = 0; i < allPlayers.Count; i++)
+    //    //{
+    //    //    allPlayers[i].playerStats.Points = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[selectedPlayIDForPreview].LinkedPlayersWithPlays[i].Points;
+    //    //    allPlayers[i].LoadPlayData();
+    //    //}
+    //    //var players = FindObjectsOfType<SinglePlayer>();
+    //    //if (players != null)
+    //    //{
+    //    //    for (int i = 0; i < playersCountForPlay; i++)
+    //    //    {
+    //    //        if (allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[selectedPlayIDForPreview].LinkedPlayersWithPlays[i].PlayerID == players[i].playerStats.PlayerID)
+    //    //        {
+    //    //            players[i].playerStats.Points = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[selectedPlayIDForPreview].LinkedPlayersWithPlays[i].Points;
+    //    //            players[i].playerStats.PlayerPointerType = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[selectedPlayIDForPreview].LinkedPlayersWithPlays[i].PlayerPointerType;
+    //    //            players[i].playerStats.PointerPosition = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[selectedPlayIDForPreview].LinkedPlayersWithPlays[i].PointerPosition;
+    //    //            players[i].playerStats.PointerRotation = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[selectedPlayIDForPreview].LinkedPlayersWithPlays[i].PointerRotation;
+    //    //            players[i].playerStats.PlayerLocalPosition = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[selectedPlayIDForPreview].LinkedPlayersWithPlays[i].PlayerLocalPosition;
+    //    //            players[i].LoadPlayData();
+    //    //            players[i].LoadFormationData();
 
-        //        }
-        //    }
-        //}
-    }
+    //    //        }
+    //    //    }
+    //    //}
+    //}
 
 
     public void OnSelectedPlayPreview(Dropdown play)
     {
-        int menuIndex = play.GetComponent<Dropdown>().value - 1;
-        int playersCountForPlay = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[menuIndex].LinkedPlayersWithPlays.Count;
 
-        for (int i = 0; i < allPlayers.Count; i++)
+        int menuIndex = play.GetComponent<Dropdown>().value -1;
+     //   ResetOnlyThePlayersPositionToDefault();
+
+        if (menuIndex >= 0)
         {
-            if (allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[menuIndex].LinkedPlayersWithPlays[i].PlayerID == allPlayers[i].playerStats.PlayerID)
+            for (int i = 0; i < allPlayers.Count; i++)
             {
-
-                allPlayers[i].playerStats.Points = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[menuIndex].LinkedPlayersWithPlays[i].Points;
-                allPlayers[i].playerStats.PlayerPointerType = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[menuIndex].LinkedPlayersWithPlays[i].PlayerPointerType;
-                allPlayers[i].playerStats.PointerPosition = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[menuIndex].LinkedPlayersWithPlays[i].PointerPosition;
-                allPlayers[i].playerStats.PointerRotation = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[menuIndex].LinkedPlayersWithPlays[i].PointerRotation;
-                allPlayers[i].playerStats.PlayerLocalPosition = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[menuIndex].LinkedPlayersWithPlays[i].PlayerLocalPosition;
-                allPlayers[i].LoadPlayData();
-                allPlayers[i].LoadFormationData();
-
+                allPlayers[i].transform.position = allPlayers[i].playerStats.StartingPlayerLocalPosition;
             }
-        }
-        var pointers = FindObjectsOfType<Pointer>();
-        if (pointers != null)
-        {
-            foreach (var item in pointers)
+            int playersCountForPlay = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[menuIndex].LinkedPlayersWithPlays.Count;
+
+            for (int i = 0; i < allPlayers.Count; i++)
             {
-                DestroyImmediate(item.gameObject);
+                if (allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[menuIndex].LinkedPlayersWithPlays[i].PlayerID == allPlayers[i].playerStats.PlayerID)
+                {
+
+                    allPlayers[i].playerStats.Points = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[menuIndex].LinkedPlayersWithPlays[i].Points;
+                    allPlayers[i].playerStats.PlayerPointerType = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[menuIndex].LinkedPlayersWithPlays[i].PlayerPointerType;
+                    allPlayers[i].playerStats.PointerPosition = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[menuIndex].LinkedPlayersWithPlays[i].PointerPosition;
+                    allPlayers[i].playerStats.PointerRotation = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[menuIndex].LinkedPlayersWithPlays[i].PointerRotation;
+                    allPlayers[i].playerStats.PlayerLocalPosition = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[menuIndex].LinkedPlayersWithPlays[i].PlayerLocalPosition;
+                    allPlayers[i].PreviewPlayOnlyWithoutPointers();
+                    allPlayers[i].LoadFormationData();
+
+                }
             }
+
+
+            InFormation = false;
+          //  PLAYS.value = 1;
+            DestroyPointsAndLines();
         }
+
 
     }
 
-
+    // do this undo Lines and check it 
     public void DeleteLineForSelectedPlayer()
     {
 
 
         foreach (var item in allPlayers)
         {
+            item.playerStats.Points.Clear();
+            item.playerStats.PointerPosition = Vector3.zero;
+            item.playerStats.PointerRotation = new Quaternion(0, 0, 0, 0);
+            item.playerStats.PlayerPointerType = "";
             item.GetComponent<LineRenderer>().positionCount = 0;
             item.playerStats.HasDrawnedLine = false;
-            item.canMove = true;
+            item.playerStats.PointerCounter = 0;
+         //   item.canMove = true;
         }
-        //allPlayers[SelectedPlayerID].GetComponent<LineRenderer>().positionCount = 0;
-        //allPlayers[SelectedPlayerID].playerStats.Points = null;
-        //pathCreator.lineRenderer.positionCount = 3;
-        var pointers = FindObjectsOfType<Pointer>();
-        if (pointers != null)
+        pathCreator.lineRenderer.positionCount = 0;
+        pathCreator.PointerHolder.SetActive(false);
+        for (int i = 0; i < allPlayers.Count; i++)
         {
-            foreach (var item in pointers)
+            allPlayers[i].transform.position = allPlayers[i].playerStats.PlayerLocalPosition;
+            allPlayers[i].playerStats.HasDrawnedLine = false;
+            allPlayers[i].pathMover.enabled = false;
+            allPlayers[i].playerNav.enabled = false;
+            allPlayers[i].playerStats.Points.Clear();
+            if (allPlayers[i].pathMover.navmeshagent.hasPath)
             {
-                if (item.transform.parent != null)
-                {
-                    DestroyImmediate(item.transform.parent.gameObject);
-                }
-                else
-                    DestroyImmediate(item.gameObject);
-            }
-        }
+                allPlayers[i].pathMover.navmeshagent.isStopped = true;
+                allPlayers[i].pathMover.navmeshagent.ResetPath();
 
+            }
+
+
+        }
+        DestroyPointsAndLines();
+       // ResetOnlyThePlayersPositionToDefault();
+        UIManager.Instance.SelectTextType("All drawn lines are removed", "warning", 1f);
     }
 
 
@@ -612,18 +734,13 @@ public class GameManager : MonoBehaviour
     /// <param name="play"></param>
     public void OnSelectedPlay(Dropdown play)
     {
+        DestroyPointsAndLines();
+        ResetOnlyThePlayersPositionToDefault();
         int menuIndex = play.GetComponent<Dropdown>().value - 1; // because there is choose plays value at index 0;
         var playname = play.options[menuIndex].text;
         Debug.Log("menu index " + menuIndex);
         int playersCountForPlay = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[menuIndex].LinkedPlayersWithPlays.Count;
-        var pointers = FindObjectsOfType<Pointer>();
-        if (pointers != null)
-        {
-            foreach (var item in pointers)
-            {
-                DestroyImmediate(item.gameObject);
-            }
-        }
+
         var players = FindObjectsOfType<SinglePlayer>();
         if (players != null)
         {
@@ -637,13 +754,35 @@ public class GameManager : MonoBehaviour
                     players[i].playerStats.PointerPosition = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[menuIndex].LinkedPlayersWithPlays[i].PointerPosition;
                     players[i].playerStats.PointerRotation = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[menuIndex].LinkedPlayersWithPlays[i].PointerRotation;
                     players[i].playerStats.PlayerLocalPosition = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[menuIndex].LinkedPlayersWithPlays[i].PlayerLocalPosition;
-                    players[i].LoadPlayData();
+                    players[i].LoadPlayData(SelectedFormation, menuIndex);
                     players[i].LoadFormationData();
 
                 }
             }
         }
 
+        PLAYS.value = 0;
+        pathCreator.lineRenderer.positionCount = 0;
+        pathCreator.PointerHolder.SetActive(false);
+        UIManager.Instance.ResetFormation.interactable = true;
+        CameraMovement.Instance.InGame = true;
+
+    }
+
+    public void RemovePointersAfterLoadingNewPlay()
+    {
+        var pointers = FindObjectsOfType<Pointer>();
+        if (pointers != null)
+        {
+            foreach (var item in pointers)
+            {
+                if (item.PointerLocalRotation.y == 0 || item.PointerLocalRotation.x == 0 || item.PointerLocalRotation.z == 0)
+                {
+                    Destroy(item.gameObject);
+                }
+
+            }
+        }
     }
 
     /// <summary>
@@ -659,8 +798,9 @@ public class GameManager : MonoBehaviour
             allPlayers[i].GetComponentInChildren<MeshRenderer>().enabled = false;
 
         }
-        UIManager.Instance.View3D.interactable = true;
         pathCreator.enabled = true;
+        //  UIManager.Instance.View3D.interactable = true;
+
 
     }
 
@@ -671,38 +811,109 @@ public class GameManager : MonoBehaviour
     /// <returns></returns>
     IEnumerator LateSaveEverything()
     {
+
+        DestroyPointsAndLines();
+
         yield return new WaitForSeconds(.5f);
         string jsonData = JsonUtility.ToJson(allFormations);
         File.WriteAllText(Application.dataPath + "/Formations-Plays.json", jsonData);
-        string JsonData = JsonUtility.ToJson(playsNamesHolder);
-        File.WriteAllText(Application.dataPath + "/PlaysNamesHolder.json", JsonData);
-        yield return new WaitForSeconds(1f);
-        ResetPlayersForNewDrawAfterPlayIsSaved();
         StartCoroutine(LateLoadEverything());
-        // GoBackToDefaultViewAfterSavingFormationAndPlay();
+        if(InFormation)
+        {
+            // after you save formation with default play
+        }
+        else
+        {
+            UIManager.Instance.SelectTextType("Play has been saved!", "success", 2f);
+            UIManager.Instance.SavePlay(false);
+            UIManager.Instance.ContinueNewPlayOrMakeNewFormation(true);
+            UIManager.Instance.View2D.interactable = false;
+            // after you save a play 
+        }
+
+        UIManager.Instance.ResetFormation.interactable = true;
+        UIManager.Instance.LoadPlayUI.interactable = false;
+        UIManager.Instance.RemoveLines.interactable = false;
+        pathCreator.PointerHolder.transform.position = new Vector3(250, 0, 500);
+        //on default formation reset the player positon
+        // enable default formation button
+
+        //if (InFormation)
+        //{
+        // 
+        //    UIManager.Instance.SavePlay(false);
+        //    UIManager.Instance.ContinueNewPlayOrMakeNewFormation(false);
+
+        //    yield return new WaitForSeconds(.5f);
+        //    string jsonData = JsonUtility.ToJson(allFormations);
+        //    File.WriteAllText(Application.dataPath + "/Formations-Plays.json", jsonData);
+        //    yield return new WaitForSeconds(1f);
+        //    StartCoroutine(LateLoadEverything());
+        //    for (int i = 0; i < allPlayers.Count; i++)
+        //    {
+        //        allPlayers[i].transform.position = allPlayers[i].playerStats.StartingPlayerLocalPosition;
+        //        allPlayers[i].playerStats.PlayerLocalPosition = allPlayers[i].playerStats.StartingPlayerLocalPosition;
+        //        allPlayers[i].playerStats.PointerCounter = 0;
+        //    }
+        //}
+        //else
+        //{
+
+        //    UIManager.Instance.SelectTextType("Play has been saved!", "success", 2f);
+        //    UIManager.Instance.SavePlay(false);
+        //    UIManager.Instance.ContinueNewPlayOrMakeNewFormation(true);
+
+        //    yield return new WaitForSeconds(.5f);
+        //    string jsonData = JsonUtility.ToJson(allFormations);
+        //    File.WriteAllText(Application.dataPath + "/Formations-Plays.json", jsonData);
+        //    yield return new WaitForSeconds(1f);
 
 
-        //  PopulateDropdownDataForFormationsAndPlays();
+        //    StartCoroutine(LateLoadEverything());
+        //    for (int i = 0; i < allPlayers.Count; i++)
+        //    {
+        //        allPlayers[i].transform.position = allPlayers[i].playerStats.StartingPlayerLocalPosition;
+        //        allPlayers[i].playerStats.PlayerLocalPosition = allPlayers[i].playerStats.StartingPlayerLocalPosition;
+        //    }
+        //}
+        //UIManager.Instance.ResetFormation.interactable = true;
+        //UIManager.Instance.LoadPlayUI.interactable = false;
+        //UIManager.Instance.RemoveLines.interactable = false;
+        //InFormation = true; // for the defense players so they can move again
     }
 
     IEnumerator LateLoadEverything()
     {
-        yield return new WaitForSeconds(.2f);
+        //for (int i = 0; i < allPlayers.Count; i++)
+        //{
+        //    allPlayers[i].playerStats.Points.Clear();
+        //    allPlayers[i].renderer.positionCount = 0;
+        //}
+        yield return new WaitForSeconds(.5f);
         string path = Application.dataPath + "/Formations-Plays.json";
         if (File.Exists(path))
         {
             string json = File.ReadAllText(path);
             allFormations = JsonUtility.FromJson<AllFormations>(json);
 
-            PopulateDropdownDataForFormationsAndPlays();
-        }
+            FORMATIONS.ClearOptions();
+            for (int i = 0; i < allFormations.AllFormmations.Count; i++)
+            {
 
+                FormationsName.Add(allFormations.AllFormmations[i].FormationName);
+            }
+
+            FORMATIONS.AddOptions(FormationsName);
+
+
+            //   PopulateDropdownDataForFormationsAndPlays();
+        }
+        UIManager.Instance.LoadFormationDropDown.interactable = true;
     }
 
 
     public void SaveFormationDataAndDrawForPlay(InputField savedFormationName)
     {
-
         SavingFormation(savedFormationName);
     }
 
@@ -1098,6 +1309,15 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(.3f);
         var p = newPlayer.GetComponent<SinglePlayer>();
         p.playerStats.PlayerID = playersCount;
+        if(InFormation)
+        {
+            p.playerStats.CanMove = false;
+        }
+        else
+        {
+            p.playerStats.CanMove = true;
+        }
+      
         allPlayers.Add(p);
         yield return new WaitForSeconds(.3f);
         PlayersCount = allPlayers.Count;
@@ -1144,6 +1364,7 @@ public class GameManager : MonoBehaviour
         public string PlayerName;
         public int PlayerID;
         public string PlayerPointerType;
+        public int PointerCounter;
         public Vector3 StartingPlayerLocalPosition;
         public Vector3 PlayerLocalPosition;
         public Vector3 PointerPosition;

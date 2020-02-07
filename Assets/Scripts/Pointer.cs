@@ -10,6 +10,7 @@ public class Pointer : MonoBehaviour {
     public Quaternion PointerLocalRotation;
     public bool isActive;
     public string SinglePointerType;
+    public int PointerCounter;
     void Start () {
 		
 	}

@@ -13,6 +13,7 @@ TagManager:
   - 3DView
   - ScreenShootCam
   - newdefenseplayerpos
+  - POINTER
   layers:
   - Default
   - TransparentFX

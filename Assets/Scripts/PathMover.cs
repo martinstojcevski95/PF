@@ -37,14 +37,14 @@ public class PathMover : MonoBehaviour {
 	private void UpdatePathing()
 	{
         var pathmover = gameObject.GetComponent<PathMover>();
-        if(pathmover != null)
+            if (pathmover != null)
             {
-            if (ShouldSetDestination())
-            {
-
-                navmeshagent.SetDestination(pathPoints.Dequeue());
-            }
+                if (ShouldSetDestination())
+                {
+                    navmeshagent.SetDestination(pathPoints.Dequeue());
+                }
         }
+
     
     }
 
@@ -54,8 +54,10 @@ public class PathMover : MonoBehaviour {
 		if (pathPoints.Count == 0)
 			return false;
 
-		if(navmeshagent.hasPath == false || navmeshagent.remainingDistance < 0.5f)
+        if (navmeshagent.hasPath == false || navmeshagent.remainingDistance == 0f)
             return true;
+		//if(navmeshagent.hasPath == false || navmeshagent.remainingDistance < 0.5f)
+  //          return true;
        
 			
 		
