@@ -117,7 +117,7 @@ public class UIManager : MonoBehaviour
         if(isMenuOpened)
         {
             Menu.DOAnchorPos(new Vector2(170, 0), 0.5f);
-           // CameraMovement.Instance.InGame = false;
+           CameraMovement.Instance.InGame = false;
             isMenuOpened = false;
         }
         else
@@ -126,13 +126,14 @@ public class UIManager : MonoBehaviour
             Menu.DOAnchorPos(new Vector2(-190, 0), 0.5f);
             isMenuOpened = true;
         }
-
+        GameManager.Instance.RecenterCamerView();
     }
     public void CloseMenu()
     {
         CameraMovement.Instance.InGame = true;
        // CameraMovement.Instance.EnablePanning();
         Menu.DOAnchorPos(new Vector2(-190, 0), 0.5f);
+
     }
     /// <summary>
     /// UI Info
@@ -148,6 +149,7 @@ public class UIManager : MonoBehaviour
 
     public void SavePlay(bool t)
     {
+        GameManager.Instance.RecenterCamerView();
         for (int i = 0; i < GameManager.Instance.allPlayers.Count; i++)
         {
             GameManager.Instance.allPlayers[i].canMove = false;
@@ -179,17 +181,17 @@ public class UIManager : MonoBehaviour
 
     public void LoadPlay(bool t)
     {
-
+        GameManager.Instance.RecenterCamerView();
         //   LoadPlayPopUp.gameObject.SetActive(t);
         PopUpCanvas.enabled = t;
         if(t)
         {
-            LoadPlayPopUp.DOAnchorPos(new Vector2(0, 0), 0.5f);
+            LoadPlayPopUp.DOAnchorPos(new Vector2(-756, -324), 0.5f);
 
         }
         else
         {
-            LoadPlayPopUp.DOAnchorPos(new Vector2(0, 1000), 0.5f);
+            LoadPlayPopUp.DOAnchorPos(new Vector2(-1500, -324), 0.5f);
 
             CameraMovement.Instance.EnablePanning();
         }
@@ -210,7 +212,7 @@ public class UIManager : MonoBehaviour
     {
         // SaveFormationPopUp.gameObject.SetActive(t);
 
-
+        GameManager.Instance.RecenterCamerView();
         PopUpCanvas.enabled = t;
         CameraMovement.Instance.InGame = true;
         if (t)
@@ -221,11 +223,13 @@ public class UIManager : MonoBehaviour
     public void LoadPlayLoadAfterFormationLoad()
     {
         PopUpCanvas.enabled = true;
-        LoadPlayPopUp.DOAnchorPos(new Vector2(0, 0), 0.5f);
+        LoadPlayPopUp.DOAnchorPos(new Vector2(-756, -324), 0.5f);
+       // LoadPlayPopUp.DOAnchorPos(new Vector2(0, 0), 0.5f);
     }
 
     public void LoadFormation(bool t)
     {
+        GameManager.Instance.RecenterCamerView();
         PopUpCanvas.enabled = t;
 
         CameraMovement.Instance.EnablePanning();
@@ -254,7 +258,8 @@ public class UIManager : MonoBehaviour
         SavePlayPopUp.DOAnchorPos(new Vector2(0, 1000), 0.5f);
         LoadFormationPopUp.DOAnchorPos(new Vector2(0, 1000), 0.5f);
         SaveFormationPopUp.DOAnchorPos(new Vector2(0, 1000), 0.5f);
-        LoadPlayPopUp.DOAnchorPos(new Vector2(0, 1000), 0.5f);
+        LoadPlayPopUp.DOAnchorPos(new Vector2(-1500, -324), 0.5f);
+      //  LoadPlayPopUp.DOAnchorPos(new Vector2(0, 1000), 0.5f);
         ContinueNewPlayOrNewFormation.DOAnchorPos(new Vector2(0, 1000),0.5f);
 
         NewFormatonAndPlay.DOAnchorPos(new Vector2(0, 1000), 0.5f);

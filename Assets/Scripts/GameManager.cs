@@ -653,7 +653,7 @@ public class GameManager : MonoBehaviour
     {
 
         int menuIndex = play.GetComponent<Dropdown>().value -1;
-     //   ResetOnlyThePlayersPositionToDefault();
+        //   ResetOnlyThePlayersPositionToDefault();
 
         if (menuIndex >= 0)
         {
@@ -662,7 +662,6 @@ public class GameManager : MonoBehaviour
                 allPlayers[i].transform.position = allPlayers[i].playerStats.StartingPlayerLocalPosition;
             }
             int playersCountForPlay = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[menuIndex].LinkedPlayersWithPlays.Count;
-
             for (int i = 0; i < allPlayers.Count; i++)
             {
                 if (allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[menuIndex].LinkedPlayersWithPlays[i].PlayerID == allPlayers[i].playerStats.PlayerID)
@@ -679,14 +678,14 @@ public class GameManager : MonoBehaviour
                 }
             }
 
-
+            UIManager.Instance.SelectTextType("Preview mode", "success", 3f);
             InFormation = false;
-          //  PLAYS.value = 1;
+            //PLAYS.value = 1;
             DestroyPointsAndLines();
         }
 
-
     }
+
 
     // do this undo Lines and check it 
     public void DeleteLineForSelectedPlayer()

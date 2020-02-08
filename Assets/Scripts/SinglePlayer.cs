@@ -198,6 +198,7 @@ public class SinglePlayer : MonoBehaviour
         playerStats.CanMove = true; // to not be able to move the players after loading formation
         if (playerStats.Points != null)
         {
+            Debug.Log("data");
             OnNewPathCreated(playerStats.Points);
             renderer.enabled = true;
             renderer.positionCount = playerStats.Points.Count;
