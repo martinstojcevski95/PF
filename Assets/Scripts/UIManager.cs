@@ -39,6 +39,8 @@ public class UIManager : MonoBehaviour
     public Button ResetFormation,LoadPlayUI;
     public Button RemoveLines;
 
+    public Button SideViewCamera, TopViewCamera, WireCamCamera, PressBoxView, FlipedViewCamera;
+    public Color Selected, Unselected;
     bool isMenuOpened;
     void Awake()
     {
@@ -53,7 +55,7 @@ public class UIManager : MonoBehaviour
         Block.interactable = false;
         isMenuOpened = true;
         View3D.interactable = false;
-        View2D.interactable = false;
+      //  View2D.interactable = false;
         SavePlayUI.interactable = false;
         Loading.gameObject.SetActive(true);
 
@@ -116,14 +118,14 @@ public class UIManager : MonoBehaviour
     {
         if(isMenuOpened)
         {
-            Menu.DOAnchorPos(new Vector2(170, 0), 0.5f);
+            Menu.DOAnchorPos(new Vector2(170, -299.35f), 0.5f);
            CameraMovement.Instance.InGame = false;
             isMenuOpened = false;
         }
         else
         {
             CameraMovement.Instance.InGame = true;
-            Menu.DOAnchorPos(new Vector2(-190, 0), 0.5f);
+            Menu.DOAnchorPos(new Vector2(-190, -299.35f), 0.5f);
             isMenuOpened = true;
         }
         GameManager.Instance.RecenterCamerView();
@@ -132,7 +134,7 @@ public class UIManager : MonoBehaviour
     {
         CameraMovement.Instance.InGame = true;
        // CameraMovement.Instance.EnablePanning();
-        Menu.DOAnchorPos(new Vector2(-190, 0), 0.5f);
+        Menu.DOAnchorPos(new Vector2(-190, -299.35f), 0.5f);
 
     }
     /// <summary>

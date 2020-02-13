@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Policy;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -26,7 +27,7 @@ public class GameManager : MonoBehaviour
     Quaternion Camera3DRotation, CameraDefaultRotation;
     Transform newPlayerPosition;
     Transform newDefensePlayerPosition;
-
+    Transform SideLineCameraView, FlippedDefensePovView, PressBoxView;
     public Image LoadinPanel;
 
     public List<string> FormationsName = new List<string>();
@@ -92,6 +93,7 @@ public class GameManager : MonoBehaviour
         newDefensePlayerPosition = GameObject.FindGameObjectWithTag("newdefenseplayerpos").transform;
         Camera3DView = GameObject.FindGameObjectWithTag("3DView").transform.position;
         Camera3DRotation = GameObject.FindGameObjectWithTag("3DView").transform.rotation;
+
         var cam = FindObjectOfType<Camera>();
         if (cam != null)
         {
@@ -187,6 +189,7 @@ public class GameManager : MonoBehaviour
         UIManager.Instance.ResetFormation.interactable = false;
         UIManager.Instance.RemoveLines.interactable = true;
         CameraMovement.Instance.InGame = true;
+        EnableOrDisableCollidersOnPlayers(true);
     }
 
     public void DestroyPointsAndLines()
@@ -230,9 +233,12 @@ public class GameManager : MonoBehaviour
 
     public void StartNewPlayWithOnlyDrawing()
     {
+        InFormation = true; // this is new so  the menus are resrting;
         UIManager.Instance.NewFormatonAndPlay.DOAnchorPos(new Vector2(0, 1000), 0.5f);
         UIManager.Instance.SavePlayUI.interactable = true;
+        SavingPlay(placeHolder);
         DrawingMode();
+        UIManager.Instance.RemoveLines.interactable = true;
     }
 
 
@@ -284,7 +290,7 @@ public class GameManager : MonoBehaviour
             }
             UIManager.Instance.LoadFormationDropDown.interactable = false;
             StartCoroutine(LateSaveEverything());
-            }
+        }
         else
         {
             if (allFormations.AllFormmations[formationCounter - 1].LinkedPlaysWithFormation.Exists(name => name.PlayName == newPlay.PlayName))
@@ -335,11 +341,15 @@ public class GameManager : MonoBehaviour
     //    //    allPlayers[i].transform.position = allPlayers[i].playerStats.StartingPlayerLocalPosition;
     //    //}
     //    GoBackToDefaultViewAfterSavingFormationAndPlay();
-      
+
     //    InFormation = true;
     //    UIManager.Instance.SelectTextType("Formation has be reseted to the default one", "success", 1.5f);
     //}
 
+    public void QuitApp()
+    {
+        Application.Quit();
+    }
 
     public void ContinueDrawing()
     {
@@ -360,18 +370,78 @@ public class GameManager : MonoBehaviour
         DrawingMode();
     }
 
-
-
-    public void DefaultPlayPopulation()
+    public void EnableOrDisableCollidersOnPlayers(bool collider)
     {
+        for (int i = 0; i < allPlayers.Count; i++)
+        {
+            allPlayers[i].GetComponent<BoxCollider>().enabled = collider;
+        }
+    }
+
+
+
+    public void SideLineView()
+    {
+        TopViewCamera.transform.position = CameraDefaultView;
+        TopViewCamera.transform.rotation = CameraDefaultRotation;
+
+        UIManager.Instance.WireCamCamera.GetComponent<Image>().color = UIManager.Instance.Unselected;
+        UIManager.Instance.PressBoxView.GetComponent<Image>().color = UIManager.Instance.Unselected;
+        UIManager.Instance.TopViewCamera.GetComponent<Image>().color = UIManager.Instance.Unselected;
+        UIManager.Instance.FlipedViewCamera.GetComponent<Image>().color = UIManager.Instance.Unselected;
+        UIManager.Instance.SideViewCamera.GetComponent<Image>().color = UIManager.Instance.Selected;
+        SideLineCameraView = GameObject.FindGameObjectWithTag("sidelineview").transform;
+        TopViewCamera.transform.position = SideLineCameraView.transform.position;
+        TopViewCamera.transform.rotation = SideLineCameraView.transform.rotation;
+        EnableOrDisableCollidersOnPlayers(false);
+        UIManager.Instance.SelectTextType("You are now in SideLine View, from where the coaches spectate the game.", "success", 3f);
 
     }
 
+    public void DefensePOV()
+    {
+        TopViewCamera.transform.position = CameraDefaultView;
+        TopViewCamera.transform.rotation = CameraDefaultRotation;
+        UIManager.Instance.WireCamCamera.GetComponent<Image>().color = UIManager.Instance.Unselected;
+        UIManager.Instance.PressBoxView.GetComponent<Image>().color = UIManager.Instance.Unselected;
+        UIManager.Instance.TopViewCamera.GetComponent<Image>().color = UIManager.Instance.Unselected;
+        UIManager.Instance.FlipedViewCamera.GetComponent<Image>().color = UIManager.Instance.Selected;
+        UIManager.Instance.SideViewCamera.GetComponent<Image>().color = UIManager.Instance.Unselected;
+        FlippedDefensePovView = GameObject.FindGameObjectWithTag("defensePov").transform;
+
+        TopViewCamera.transform.rotation = FlippedDefensePovView.transform.rotation;
+        TopViewCamera.transform.position = FlippedDefensePovView.transform.position;
+        EnableOrDisableCollidersOnPlayers(false);
+
+        UIManager.Instance.SelectTextType("You are now in Flipped View, and seeing the field as the other team will see it.", "success", 3f);
+
+    }
+
+    public void PressView()
+    {
+        TopViewCamera.transform.position = CameraDefaultView;
+        TopViewCamera.transform.rotation = CameraDefaultRotation;
+        
+        UIManager.Instance.WireCamCamera.GetComponent<Image>().color = UIManager.Instance.Unselected;
+        UIManager.Instance.PressBoxView.GetComponent<Image>().color = UIManager.Instance.Selected;
+        UIManager.Instance.TopViewCamera.GetComponent<Image>().color = UIManager.Instance.Unselected;
+        UIManager.Instance.FlipedViewCamera.GetComponent<Image>().color = UIManager.Instance.Unselected;
+        UIManager.Instance.SideViewCamera.GetComponent<Image>().color = UIManager.Instance.Unselected;
+
+        PressBoxView = GameObject.FindGameObjectWithTag("pressview").transform;
+
+        TopViewCamera.transform.rotation = PressBoxView.transform.rotation;
+        TopViewCamera.transform.position = PressBoxView.transform.position;
+        EnableOrDisableCollidersOnPlayers(false);
+        UIManager.Instance.SelectTextType("You are now in Press View.", "success", 3f);
+
+    }
 
     public void RecenterCamerView()
     {
         Camera.main.transform.position = CameraDefaultView;
         Camera.main.transform.rotation = CameraDefaultRotation;
+        EnableOrDisableCollidersOnPlayers(true);
     }
 
     public void ReturnToDefaultFormation()
@@ -396,10 +466,11 @@ public class GameManager : MonoBehaviour
         DestroyPointsAndLines();
         Camera.main.transform.position = CameraDefaultView;
         Camera.main.transform.rotation = CameraDefaultRotation;
-        UIManager.Instance.View3D.interactable = false;
+        UIManager.Instance.View3D.interactable = false; // reset this because we don;t have active play
         UIManager.Instance.CloseAllPopUps();
         InFormation = true;
         UIManager.Instance.SelectTextType("Formation has be reseted to the default one", "success", 1.5f);
+        UIManager.Instance.RemoveLines.interactable = false;
         LoadFullData();
     }
 
@@ -467,11 +538,17 @@ public class GameManager : MonoBehaviour
     //        WTF.texture = temp;
 
 
-     IEnumerator DelayedPlayersMovement(bool t)
+    IEnumerator DelayedPlayersMovement(bool t)
     {
         if (t)
         {
-
+            UIManager.Instance.WireCamCamera.GetComponent<Image>().color = UIManager.Instance.Selected;
+            UIManager.Instance.PressBoxView.GetComponent<Image>().color = UIManager.Instance.Unselected;
+            UIManager.Instance.TopViewCamera.GetComponent<Image>().color = UIManager.Instance.Unselected;
+            UIManager.Instance.FlipedViewCamera.GetComponent<Image>().color = UIManager.Instance.Unselected;
+            UIManager.Instance.SideViewCamera.GetComponent<Image>().color = UIManager.Instance.Unselected;
+            UIManager.Instance.View3D.GetComponent<Image>().color = UIManager.Instance.Selected;
+            UIManager.Instance.View2D.GetComponent<Image>().color = UIManager.Instance.Unselected;
             Camera.main.transform.position = Camera3DView;
             Camera.main.transform.rotation = Camera3DRotation;
             yield return new WaitForSeconds(1f);
@@ -482,7 +559,7 @@ public class GameManager : MonoBehaviour
                 item.pathMover.SetPoints(item.playerStats.Points);
                 //item.renderer.SetPosition(0, new Vector3(-100, -100, 0));
             }
-
+            UIManager.Instance.SelectTextType("You are now in WireCam View. The players movement will be animated", "success", 3f);
 
         }
         else
@@ -497,6 +574,16 @@ public class GameManager : MonoBehaviour
                 item.transform.position = item.playerStats.PlayerLocalPosition;
 
             }
+
+            UIManager.Instance.WireCamCamera.GetComponent<Image>().color = UIManager.Instance.Unselected;
+            UIManager.Instance.PressBoxView.GetComponent<Image>().color = UIManager.Instance.Unselected;
+            UIManager.Instance.TopViewCamera.GetComponent<Image>().color = UIManager.Instance.Selected;
+            UIManager.Instance.FlipedViewCamera.GetComponent<Image>().color = UIManager.Instance.Unselected;
+            UIManager.Instance.SideViewCamera.GetComponent<Image>().color = UIManager.Instance.Unselected;
+            UIManager.Instance.View3D.GetComponent<Image>().color = UIManager.Instance.Unselected;
+            UIManager.Instance.View2D.GetComponent<Image>().color = UIManager.Instance.Selected;
+
+            UIManager.Instance.SelectTextType("You are now in Overhead/TopDown View.", "success", 3f);
         }
     }
     /// <summary>
@@ -506,6 +593,7 @@ public class GameManager : MonoBehaviour
     public void SwitchCameraView(bool t)
     {
         StartCoroutine(DelayedPlayersMovement(t));
+        EnableOrDisableCollidersOnPlayers(true);
         //if (t)
         //{
 
@@ -652,7 +740,7 @@ public class GameManager : MonoBehaviour
     public void OnSelectedPlayPreview(Dropdown play)
     {
 
-        int menuIndex = play.GetComponent<Dropdown>().value -1;
+        int menuIndex = play.GetComponent<Dropdown>().value - 1;
         //   ResetOnlyThePlayersPositionToDefault();
 
         if (menuIndex >= 0)
@@ -701,7 +789,7 @@ public class GameManager : MonoBehaviour
             item.GetComponent<LineRenderer>().positionCount = 0;
             item.playerStats.HasDrawnedLine = false;
             item.playerStats.PointerCounter = 0;
-         //   item.canMove = true;
+            //   item.canMove = true;
         }
         pathCreator.lineRenderer.positionCount = 0;
         pathCreator.PointerHolder.SetActive(false);
@@ -722,7 +810,7 @@ public class GameManager : MonoBehaviour
 
         }
         DestroyPointsAndLines();
-       // ResetOnlyThePlayersPositionToDefault();
+        // ResetOnlyThePlayersPositionToDefault();
         UIManager.Instance.SelectTextType("All drawn lines are removed", "warning", 1f);
     }
 
@@ -817,8 +905,10 @@ public class GameManager : MonoBehaviour
         string jsonData = JsonUtility.ToJson(allFormations);
         File.WriteAllText(Application.dataPath + "/Formations-Plays.json", jsonData);
         StartCoroutine(LateLoadEverything());
-        if(InFormation)
+        if (InFormation)
         {
+            EnableOrDisableCollidersOnPlayers(true);
+
             // after you save formation with default play
         }
         else
@@ -826,14 +916,15 @@ public class GameManager : MonoBehaviour
             UIManager.Instance.SelectTextType("Play has been saved!", "success", 2f);
             UIManager.Instance.SavePlay(false);
             UIManager.Instance.ContinueNewPlayOrMakeNewFormation(true);
-            UIManager.Instance.View2D.interactable = false;
+        //    UIManager.Instance.View2D.interactable = false; // using this before
             // after you save a play 
         }
 
         UIManager.Instance.ResetFormation.interactable = true;
         UIManager.Instance.LoadPlayUI.interactable = false;
-        UIManager.Instance.RemoveLines.interactable = false;
+        //UIManager.Instance.RemoveLines.interactable = false;
         pathCreator.PointerHolder.transform.position = new Vector3(250, 0, 500);
+
         //on default formation reset the player positon
         // enable default formation button
 
@@ -907,6 +998,7 @@ public class GameManager : MonoBehaviour
 
             //   PopulateDropdownDataForFormationsAndPlays();
         }
+        yield return new WaitForSeconds(.3f);
         UIManager.Instance.LoadFormationDropDown.interactable = true;
     }
 
@@ -918,7 +1010,7 @@ public class GameManager : MonoBehaviour
 
     public void SavePlayAndFormationAfterDrawing(InputField savedPlayName)
     {
-
+        InFormation = false; // this is new when savinga play it ask you new formation or new play for this play 
         SavingPlay(savedPlayName);
     }
 
@@ -1245,7 +1337,6 @@ public class GameManager : MonoBehaviour
             foundPlayer[i].playerNav.enabled = false;
             foundPlayer[i].pathMover.enabled = false;
             foundPlayer[i].GetComponentInChildren<MeshRenderer>().enabled = false;
-            // Debug.Log("addign the found players");
             allPlayers.Add(foundPlayer[i]);
 
         }
@@ -1308,7 +1399,7 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(.3f);
         var p = newPlayer.GetComponent<SinglePlayer>();
         p.playerStats.PlayerID = playersCount;
-        if(InFormation)
+        if (InFormation)
         {
             p.playerStats.CanMove = false;
         }
@@ -1316,7 +1407,7 @@ public class GameManager : MonoBehaviour
         {
             p.playerStats.CanMove = true;
         }
-      
+
         allPlayers.Add(p);
         yield return new WaitForSeconds(.3f);
         PlayersCount = allPlayers.Count;

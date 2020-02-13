@@ -9,9 +9,14 @@ public class PathMover : MonoBehaviour {
 	public NavMeshAgent navmeshagent;
     [HideInInspector]
     public Queue<Vector3> pathPoints = new Queue<Vector3>();
+    public static PathMover Instance;
+
+
 
 	private void Awake() 
 	{
+
+        Instance = this;
 		navmeshagent = GetComponent<NavMeshAgent>();
 
    //     FindObjectOfType<PathCreator>().OnNewPathCreated += SetPoints;
@@ -49,7 +54,7 @@ public class PathMover : MonoBehaviour {
     }
 
 
-	private bool ShouldSetDestination()
+	public bool ShouldSetDestination()
 	{
 		if (pathPoints.Count == 0)
 			return false;

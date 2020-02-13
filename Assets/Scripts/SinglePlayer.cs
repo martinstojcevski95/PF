@@ -42,12 +42,14 @@ public class SinglePlayer : MonoBehaviour
     public bool InFormation;
     public PlayerStats playerStats;
     public Action<IEnumerable<Vector3>> OnNewPathCreated = delegate { };
-
+    public Animator anim;
 
     void Awake()
     {
         playerNav = GetComponent<NavMeshAgent>();
         pathMover = GetComponent<PathMover>();
+        // anim = GetComponent<Animation>();
+
         var pathcreator = (PathCreator)FindObjectOfType(typeof(PathCreator));
         if (pathcreator != null)
         {
@@ -69,13 +71,58 @@ public class SinglePlayer : MonoBehaviour
         Middle = GameObject.FindGameObjectWithTag("MiddlePlayer");
         canMove = false;
         isMiddleMoving = false;
-
+        if (anim != null)
+            StartCoroutine(DelayedAnim());
 
 
     }
 
 
+    IEnumerator DelayedAnim()
+    {
+        yield return new WaitForSeconds(0.2f);
+        anim.speed = 0.7f;
+        anim.SetBool("IsActive", true);
+        //yield return new WaitForSeconds(0.8f);
+        //anim.SetBool("IsActive", false);
+    }
 
+    IEnumerator DelayedRun()
+    {
+        yield return new WaitForSeconds(0.5f);
+        if (playerStats.Points != null)
+        {
+            int points = playerStats.Points.Count;
+            Debug.Log(playerStats.Points[points].x);
+        }
+    }
+    public void RunAnimation(bool canRun)
+    {
+
+        if (anim != null)
+        {
+            if (canRun)
+                anim.SetBool("Running", true);
+            else
+            {
+
+                anim.SetBool("Running", false);
+            }
+            StartCoroutine(DelayedRun());
+
+        }
+      
+        //if(playerStats.Points != null)
+        //{
+        //    int points = playerStats.Points.Count - 1;
+        //    if (transform.position.x == playerStats.Points[points].x)
+        //    {
+        //        Debug.Log("stignaja");
+        //    }
+        //}
+
+
+    }
     /// <summary>
     /// Using this. Populate the data for each player 
     /// </summary>
@@ -124,7 +171,7 @@ public class SinglePlayer : MonoBehaviour
     /// <summary>
     /// Using this. Load the data for each player
     /// </summary>
-    public void LoadPlayData(int formation,int play)
+    public void LoadPlayData(int formation, int play)
     {
         playerStats.CanMove = true; // to not be able to move the players after loading formation
         if (playerStats.Points != null)
@@ -136,16 +183,16 @@ public class SinglePlayer : MonoBehaviour
             renderer.SetPositions(playerStats.Points.ToArray());
             transform.position = playerStats.PlayerLocalPosition;
             playerStats.PointerCounter = GameManager.Instance.allFormations.AllFormmations[formation].LinkedPlaysWithFormation[play].LinkedPlayersWithPlays[playerStats.PlayerID].PointerCounter;
-            if(playerStats.PointerCounter >0)
+            if (playerStats.PointerCounter > 0)
             {
                 Debug.Log("pointer for player" + playerStats.PlayerID);
 
                 //instantiate i assign kako child ako nema pointer counter brisi pointer odma !!!
-                if(playerStats.PlayerPointerType == "arrow")
+                if (playerStats.PlayerPointerType == "arrow")
                 {
                     var newArrow = Instantiate(GameManager.Instance.ArrowPref, playerStats.PointerPosition, playerStats.PointerRotation);
                     newArrow.tag = "POINTER";
-                  //  newArrow.transform.parent = transform.GetChild(1).transform.parent;
+                    //  newArrow.transform.parent = transform.GetChild(1).transform.parent;
                 }
                 else if (playerStats.PlayerPointerType == "block")
                 {
@@ -437,7 +484,7 @@ public class SinglePlayer : MonoBehaviour
 
                     CameraMovement.Instance.isPanning = false;
                     GameManager.Instance.CanDrawIfSelected = true;
-                    if(foundPlayer.playerStats.CanMove)
+                    if (foundPlayer.playerStats.CanMove)
                         UIManager.Instance.SelectTextType("Drawing for player " + foundPlayer.playerStats.PlayerID, "success", 1f);
 
                 }
@@ -446,7 +493,7 @@ public class SinglePlayer : MonoBehaviour
                     UIManager.Instance.SelectTextType("", "", 0f);
                     GameManager.Instance.CanDrawIfSelected = false;
                     CameraMovement.Instance.isPanning = true;
-                        UIManager.Instance.SelectTextType("" , "", 0f);
+                    UIManager.Instance.SelectTextType("", "", 0f);
                 }
 
             }
@@ -497,10 +544,13 @@ public class SinglePlayer : MonoBehaviour
         //if(transform.position != null)
         //{
         //    if (GameManager.Instance.InFormation)
-        //        playerStats.CanMove = false;
+        //        playerStats.CanMove = false;f
         //    else
         //        playerStats.CanMove = true;
         //}
+
+
+ 
 
     }
 
@@ -520,6 +570,7 @@ public class SinglePlayer : MonoBehaviour
         {
             if (item.GetComponentInChildren<MeshRenderer>() != null)
             {
+
                 item.GetComponentInChildren<MeshRenderer>().enabled = false;
 
             }
