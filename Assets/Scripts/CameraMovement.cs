@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class CameraMovement : MonoBehaviour
 {
@@ -10,6 +11,16 @@ public class CameraMovement : MonoBehaviour
     public bool InGame;
     public static CameraMovement Instance;
 
+    public float speedH = 2.0f;
+    public float speedV = 2.0f;
+
+    private float yaw = 0.0f;
+    private float pitch = 0.0f;
+
+    Transform FPSViewCamera;
+
+
+    public bool InFPSView;
     void Awake()
     {
         Instance = this;
@@ -19,6 +30,7 @@ public class CameraMovement : MonoBehaviour
     {
         InGame = true;
         isPanning = true;
+        FPSViewCamera = GameObject.FindGameObjectWithTag("fpsview").transform;
     }
 
     public void EnablePanning()
@@ -48,6 +60,19 @@ public class CameraMovement : MonoBehaviour
         }
     }
 
+    public void UIInfoAboutWireCam()
+    {
+        UIManager.Instance.SelectTextType("You are now in WireCam View. The players movement will be animated", "success", 3f);
+        UIManager.Instance.View3D.GetComponent<Image>().color = UIManager.Instance.Selected;
+        UIManager.Instance.View2D.GetComponent<Image>().color = UIManager.Instance.Unselected;
+    }
+
+    public void UIOverheadInfo()
+    {
+        UIManager.Instance.View3D.GetComponent<Image>().color = UIManager.Instance.Unselected;
+        UIManager.Instance.View2D.GetComponent<Image>().color = UIManager.Instance.Selected;
+        UIManager.Instance.SelectTextType("You are now in Overhead/TopDown View.", "success", 3f);
+    }
     /// <summary>
     // set in game to true only when returning from 3d to 2d view
     /// </summary>
@@ -109,5 +134,41 @@ public class CameraMovement : MonoBehaviour
 
         }
 
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            InFPSView = true;
+            GameManager.Instance.EnableOrDisableCollidersOnPlayers(false);
+            UIManager.Instance.SelectTextType("You are now in the First Person View", "success", 3f);
+
+        }
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            InFPSView = false;
+          //  GameManager.Instance.OverheadView();
+            for (int i = 0; i < GameManager.Instance.allPlayers.Count; i++)
+            {
+                GameManager.Instance.allPlayers[i].transform.position = GameManager.Instance.allPlayers[i].playerStats.PlayerLocalPosition;
+                GameManager.Instance.allPlayers[i].pathMover.enabled = false;
+                GameManager.Instance.allPlayers[i].playerNav.enabled = false;
+
+
+
+            }
+            GameManager.Instance.EnableOrDisableCollidersOnPlayers(true);
+          //  UIManager.Instance.SelectTextType("You are now in Overhead/TopDown View.", "success", 3f);
+        }
+
+
+
+        if (InFPSView)
+        {
+            Camera.main.transform.position = FPSViewCamera.transform.position;
+            Camera.main.transform.rotation = FPSViewCamera.transform.rotation;
+            yaw += speedH * Input.GetAxis("Mouse X");
+           // pitch -= speedV * Input.GetAxis("Mouse Y");
+
+            transform.eulerAngles = new Vector3(0, yaw, 0.0f);
+
+        }
     }
 }

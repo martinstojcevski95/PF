@@ -112,14 +112,7 @@ public class SinglePlayer : MonoBehaviour
 
         }
       
-        //if(playerStats.Points != null)
-        //{
-        //    int points = playerStats.Points.Count - 1;
-        //    if (transform.position.x == playerStats.Points[points].x)
-        //    {
-        //        Debug.Log("stignaja");
-        //    }
-        //}
+
 
 
     }
@@ -206,31 +199,6 @@ public class SinglePlayer : MonoBehaviour
 
             }
 
-            // transform.position = playerStats.PlayerLocalPosition;
-            //if (playerStats.PlayerPointerType == "arrow")
-            //{
-            //    if (playerStats.PointerCounter >= 0)
-            //    {
-            //        Debug.Log("instanciram ednas od igrac " + playerStats.PlayerID);
-            //        // instantiate pointer and populate data
-            //        var newArrow = Instantiate(GameManager.Instance.ArrowPref, playerStats.PointerPosition, playerStats.PointerRotation);
-            //        newArrow.AddComponent<Pointer>();
-            //        newArrow.GetComponent<Pointer>().PointerLocalPosition = playerStats.PointerPosition;
-            //        newArrow.GetComponent<Pointer>().PointerLocalRotation = playerStats.PointerRotation;
-            //    }
-
-            //}
-            //else if (playerStats.PlayerPointerType == "block")
-            //{
-            //    if (playerStats.PointerCounter >= 0)
-            //    {
-            //        var newBlock = Instantiate(GameManager.Instance.BlockPref, playerStats.PointerPosition, playerStats.PointerRotation);
-            //        newBlock.AddComponent<Pointer>();
-            //        newBlock.GetComponent<Pointer>().PointerLocalPosition = playerStats.PointerPosition;
-            //        newBlock.GetComponent<Pointer>().PointerLocalRotation = playerStats.PointerRotation;
-            //    }
-
-            //}
 
         }
         else
@@ -498,41 +466,7 @@ public class SinglePlayer : MonoBehaviour
 
             }
 
-
-            //if (pathMover.navmeshagent.remainingDistance == 0)
-            //{
-            //    Debug.Log("reached end of the road");
-            //    playerNav.enabled = false;
-            //    pathMover.enabled = false;
-            //}
-
         }
-
-        // remove the drawed line and make the player unselected so it won't be saved
-        //if (Input.GetButtonUp("Fire3"))
-        //{
-        //    if (Physics.Raycast(ray, out hitInfo))
-        //    {
-        //        var selectedplayer = hitInfo.transform.gameObject.GetComponent<SinglePlayer>();
-        //        if (selectedplayer != null)
-        //        {
-        //            Debug.Log("selected player " + selectedplayer.singlePlayer.PlayerID);
-        //            selectedplayer.singlePlayer.isSelected = false;
-        //            selectedplayer.GetComponent<LineRenderer>().positionCount = 0;
-        //            selectedplayer.singlePlayer.PointerPositionOnly = new Vector3(0, 0, 0);
-        //            var pointers = FindObjectsOfType<Pointer>();
-        //            if (pointers != null)
-        //            {
-        //                foreach (var item in pointers)
-        //                {
-        //                    Destroy(item.gameObject);
-        //                }
-        //            }
-        //        }
-
-        //    }
-
-        //}
 
         if (transform.position.x > 23)
             transform.position = new Vector3(23, transform.position.y, transform.position.z);
@@ -587,126 +521,7 @@ public class SinglePlayer : MonoBehaviour
 
 
 
-
-        //if (canMove)
-        //{
-        //    GameManager.Instance.pathCreator.gameObject.SetActive(true);
-        //    GameManager.Instance.pathCreator.enabled = true;
-        //    playerNav.speed = 12;
-        //    playerNav.angularSpeed = 30;
-
-
-        //    for (int i = 0; i < GameManager.Instance.allPlayers.Count; i++)
-        //    {
-        //      //  GameManager.Instance.allPlayers[i].GetComponent<MeshRenderer>().material.color = Color.white;
-        //        GameManager.Instance.allPlayers[i].playerNav.enabled = false;
-        //        GameManager.Instance.allPlayers[i].pathMover.enabled = false;
-        //        GameManager.Instance.allPlayers[i].GetComponentInChildren<MeshRenderer>().enabled = false;
-        //    }
-        //    //gameObject.GetComponent<MeshRenderer>().material.color = SelectedPlayer;
-        //    transform.GetComponentInChildren<MeshRenderer>().enabled = true;
-        //    GameManager.Instance.SelectedPlayerID = singlePlayer.PlayerID;
-
-        //    playerNav.enabled = true;
-        //    pathMover.enabled = false; // false if we don't want the players to follow the line
-
-        //    //var player = gameObject.GetComponent<SinglePlayer>();
-        //    //if (GameManager.Instance.ListOfPlayersForSaving.Contains(player))
-        //    //    Debug.Log("player  " + player.playerID + "is already added to the list for saving");
-        //    //else
-        //    //    GameManager.Instance.ListOfPlayersForSaving.Add(player);
-        //}
-
     }
-
-    //public void PlaySave(string playname)
-    //{
-    //    StartCoroutine(SavingPlayPosition(playname));
-    //}
-
-    //IEnumerator SavingPlayPosition(string playName)
-    //{
-    //    PlayName = playName;
-    //    UIManager.Instance.SelectTextType("Play has been saved!", "success", 2f);
-    //    //  PlayerName.text = "Saved!";
-    //    yield return new WaitForSeconds(.2f);
-    //    SaveAllPoints(playName);
-    //    if (singlePlayer.PointerPositionOnly != Vector3.zero)
-    //    {
-    //        //   ES2.Save(singlePlayer.PointerPositionOnly, "PlayrPointerPosition" + singlePlayer.PlayerID + " playname " + playName);
-    //    }
-
-    //    if (singlePlayer.PointerPositionOnly != Vector3.zero)
-    //    {
-    //        //if (ES2.Exists("PlayrPointerPosition" + singlePlayer.PlayerID + " playname " + playName))
-    //        //{
-
-
-    //        //    Debug.Log("play with this name already exists, do you want to override it ?");
-    //        //}
-    //        //else
-    //        //{
-    //        //    ES2.Save(singlePlayer.PointerPositionOnly, "PlayrPointerPosition" + singlePlayer.PlayerID + " playname " + playName);
-    //        //}
-
-
-    //    }
-    //    //singlePlayer.playerPosition = singlePlayer.PointerPositionOnly;
-
-    //    //ES2.Save(singlePlayer.playerPosition, "PlayPID" + singlePlayer.PlayerID + " playname " + playName);
-    //    //ES2.Save(PlayerLocalPosition, "PlayPLP" + singlePlayer.PlayerID + " playname " + playName);
-    //    //GetComponent<MeshRenderer>().material.color = Color.white;
-    //}
-
-
-
-    //public void FormationSave(string formationname)
-    //{
-    //    StartCoroutine(SavingFormation(formationname));
-
-    //}
-
-
-
-    //IEnumerator SavingFormation(string formationName)
-    //{
-    //    UIManager.Instance.SelectTextType("Formation has been saved!", "success", 2f);
-    //    yield return new WaitForSeconds(.3f);
-
-    //    ES2.Save(singlePlayer.playerPosition, "FormationPlayerLocalPosition" + singlePlayer.PlayerID + " formationname " + formationName);
-
-    //    Debug.Log("saving position " + singlePlayer.playerPosition);
-    //    if (ES2.Exists("FormationPlayerLocalPosition" + singlePlayer.PlayerID + " formationname " + formationName))
-    //    {
-    //        //deleteing the old one and creating new under the same name
-    //        ES2.Delete("FormationPlayerLocalPosition" + singlePlayer.PlayerID + " formationname " + formationName);
-    //        ES2.Save(singlePlayer.playerPosition, "FormationPlayerLocalPosition" + singlePlayer.PlayerID + " formationname " + formationName);
-
-
-
-
-    //    }
-    //    GetComponent<MeshRenderer>().material.color = Color.white;
-    //}
-
-    //void SaveAllPoints(string playName)
-    //{
-    //    //for (int i = 0; i < singlePlayer.points.Count; i++)
-    //    //{
-    //    //    ES2.Save(singlePlayer.points[i], "LinePoint" + singlePlayer.PlayerID + " playname " + playName);
-    //    //}
-    //    ES2.Save(singlePlayer.points, "LinePoint" + singlePlayer.PlayerID + " playname " + playName);
-
-    //}
-    ////IEnumerator SavingPosition()
-    ////{
-    ////    PlayerName.text = "Saved!";
-    ////    yield return new WaitForSeconds(1f);
-    ////    singlePlayer.playerPosition = transform.position;
-    ////    ES2.Save(singlePlayer.playerPosition, "playerPosition" + singlePlayer.PlayerID);
-    ////    PlayerName.text = singlePlayer.PlayerName;
-    ////    GetComponent<MeshRenderer>().material.color = Color.white;
-    ////}
 
     void OnMouseDown()
     {

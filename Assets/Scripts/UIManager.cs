@@ -252,10 +252,6 @@ public class UIManager : MonoBehaviour
 
     public void CloseAllPopUps()
     {
-        //SavePlay(false);
-        //LoadPlay(false);
-        //SaveFormation(false);
-        //LoadFormation(false);
         PopUpCanvas.enabled = false;
         SavePlayPopUp.DOAnchorPos(new Vector2(0, 1000), 0.5f);
         LoadFormationPopUp.DOAnchorPos(new Vector2(0, 1000), 0.5f);
@@ -265,12 +261,7 @@ public class UIManager : MonoBehaviour
         ContinueNewPlayOrNewFormation.DOAnchorPos(new Vector2(0, 1000),0.5f);
 
         NewFormatonAndPlay.DOAnchorPos(new Vector2(0, 1000), 0.5f);
-        // NewFormatonAndPlay.gameObject.SetActive(false);
-        //for (int i = 0; i < GameManager.Instance.allPlayers.Count; i++)
-        //{
-        //    GameManager.Instance.allPlayers[i].canMove = true;
-        //}
-       // CameraMovement.Instance.EnablePanning();
+
 
     }
 
