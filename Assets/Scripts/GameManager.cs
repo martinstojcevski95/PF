@@ -178,18 +178,29 @@ public class GameManager : MonoBehaviour
     /// <param name="formationname"></param>
     public void SavingFormation(InputField formationname)
     {
-        var formation = new Formation();
-        formation.FormationName = formationname.text;
+        if (formationname.text == "")
+        {
+            UIManager.Instance.SelectTextType("The name for the formation is required!", "error", 4f);
 
-        formation.FormationID = allFormations.AllFormmations.Count;
-        allFormations.AllFormmations.Add(formation);
-        InFormation = false;
-        UIManager.Instance.SelectTextType("Formation has been saved!", "success", 2f);
-        UIManager.Instance.SaveFormationPopUp.DOAnchorPos(new Vector2(0, 1000), 0.5f);
-        UIManager.Instance.ResetFormation.interactable = false;
-        UIManager.Instance.RemoveLines.interactable = true;
-        CameraMovement.Instance.InGame = true;
-        EnableOrDisableCollidersOnPlayers(true);
+        }
+        else
+        {
+            var formation = new Formation();
+            formation.FormationName = formationname.text;
+
+            formation.FormationID = allFormations.AllFormmations.Count;
+            allFormations.AllFormmations.Add(formation);
+            InFormation = false;
+            UIManager.Instance.SelectTextType("Formation has been saved!", "success", 2f);
+            UIManager.Instance.SaveFormationPopUp.DOAnchorPos(new Vector2(0, 1000), 0.5f);
+            UIManager.Instance.ResetFormation.interactable = false;
+            UIManager.Instance.RemoveLines.interactable = true;
+            CameraMovement.Instance.InGame = true;
+            EnableOrDisableCollidersOnPlayers(true);
+            UIManager.Instance.SelectTextType("", "", 0f);
+            UIManager.Instance.LoadNewPlayOrFormation(true);
+
+        }
     }
 
     public void DestroyPointsAndLines()
@@ -241,6 +252,10 @@ public class GameManager : MonoBehaviour
         UIManager.Instance.RemoveLines.interactable = true;
     }
 
+    void SelectAndEditPlay(Dropdown play)
+    {
+        OnSelectedPlayPreview(play);
+    }
 
 
     /// <summary>
@@ -329,6 +344,19 @@ public class GameManager : MonoBehaviour
     {
         Application.Quit();
     }
+
+
+    public void NewFormationAndSaveFormation()
+    {
+        ReturnToDefaultFormation();
+        UIManager.Instance.SaveFormationUIButtonAfterNewFormation(true);
+        UIManager.Instance.Menu.DOAnchorPos(new Vector2(-190, -299.35f), 0.5f);
+        UIManager.Instance.isMenuOpened = true;
+
+        RecenterCamerView();
+
+    }
+
 
     public void ContinueDrawing()
     {
@@ -420,7 +448,7 @@ public class GameManager : MonoBehaviour
 
         TopViewCamera.transform.position = CameraDefaultView;
         TopViewCamera.transform.rotation = CameraDefaultRotation;
-        
+
         UIManager.Instance.WireCamCamera.GetComponent<Image>().color = UIManager.Instance.Unselected;
         UIManager.Instance.PressBoxView.GetComponent<Image>().color = UIManager.Instance.Selected;
         UIManager.Instance.TopViewCamera.GetComponent<Image>().color = UIManager.Instance.Unselected;
@@ -456,22 +484,23 @@ public class GameManager : MonoBehaviour
     {
         StartCoroutine(PlayerMovementWithDelayForOtherViews());
     }
+
     IEnumerator PlayerMovementWithDelayForOtherViews()
     {
         yield return new WaitForSeconds(1f);
-            foreach (var item in allPlayers)
-            {
-                item.pathMover.pathPoints.Clear();
-                item.transform.position = item.playerStats.PlayerLocalPosition;
-                item.playerNav.enabled = true;
-                item.pathMover.enabled = true;
+        foreach (var item in allPlayers)
+        {
+            item.pathMover.pathPoints.Clear();
+            item.transform.position = item.playerStats.PlayerLocalPosition;
+            item.playerNav.enabled = true;
+            item.pathMover.enabled = true;
 
-            if (item.playerStats.Points.Count >=1)
+            if (item.playerStats.Points.Count >= 1)
                 item.pathMover.SetPoints(item.playerStats.Points);
             else
                 Debug.Log("no drawings");
-                //item.renderer.SetPosition(0, new Vector3(-100, -100, 0));
-            }
+            //item.renderer.SetPosition(0, new Vector3(-100, -100, 0));
+        }
 
     }
 
@@ -485,6 +514,8 @@ public class GameManager : MonoBehaviour
 
     public void ReturnToDefaultFormation()
     {
+        UIManager.Instance.SelectTextType("Formation has be reseted to the default one. After done with positioning the players, click on the save formation button on the top middle ", "warning", 5f);
+
         CameraMovement.Instance.isPanning = true;
         for (int i = 0; i < allPlayers.Count; i++)
         {
@@ -508,8 +539,9 @@ public class GameManager : MonoBehaviour
         UIManager.Instance.View3D.interactable = false; // reset this because we don;t have active play
         UIManager.Instance.CloseAllPopUps();
         InFormation = true;
-        UIManager.Instance.SelectTextType("Formation has be reseted to the default one", "success", 1.5f);
         UIManager.Instance.RemoveLines.interactable = false;
+
+        //UIManager.Instance.LoadFormationUI.interactable = false;
         LoadFullData();
     }
 
@@ -524,6 +556,7 @@ public class GameManager : MonoBehaviour
         {
             if (item.FormationName.Contains(selectedItem.GetComponentInChildren<Text>().text))
             {
+                Debug.Log("wt");
                 selectedFormationIDForPreview = item.FormationID;
             }
 
@@ -647,13 +680,13 @@ public class GameManager : MonoBehaviour
         UIManager.Instance.currentPlayers = allPlayers.Count;
 
 
-        if(Input.GetKeyDown(KeyCode.P))
+        if (Input.GetKeyDown(KeyCode.P))
         {
             DelayedMovementOnlyForHotKey();
         }
     }
 
- 
+
 
     public void OnSelectedPlayPreview(Dropdown play)
     {
@@ -834,7 +867,7 @@ public class GameManager : MonoBehaviour
             UIManager.Instance.SelectTextType("Play has been saved!", "success", 2f);
             UIManager.Instance.SavePlay(false);
             UIManager.Instance.ContinueNewPlayOrMakeNewFormation(true);
-        //    UIManager.Instance.View2D.interactable = false; // using this before
+            //    UIManager.Instance.View2D.interactable = false; // using this before
             // after you save a play 
         }
 

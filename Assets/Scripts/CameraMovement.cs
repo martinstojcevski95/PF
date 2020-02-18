@@ -97,7 +97,7 @@ public class CameraMovement : MonoBehaviour
         // -------------------Code for Zooming Out------------
         if (Input.GetAxis("Scroll") < 0)
         {
-            if (Camera.main.fieldOfView <= 32)
+            if (Camera.main.fieldOfView <= 50.9f)
                 Camera.main.fieldOfView += 2;
             if (Camera.main.orthographicSize <= 20)
                 Camera.main.orthographicSize += 0.5f;
@@ -106,7 +106,7 @@ public class CameraMovement : MonoBehaviour
         // ---------------Code for Zooming In------------------------
         if (Input.GetAxis("Scroll") > 0)
         {
-            if (Camera.main.fieldOfView > 2)
+            if (Camera.main.fieldOfView > 6)
                 Camera.main.fieldOfView -= 2;
             if (Camera.main.orthographicSize >= 1)
                 Camera.main.orthographicSize -= 0.5f;

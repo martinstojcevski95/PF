@@ -29,8 +29,9 @@ public class UIManager : MonoBehaviour
     float waitTime;
     bool isClicked;
     public int currentPlayers;
-    public Dropdown LoadFormations;
 
+    public RectTransform SaveFormationUI;
+    public Button LoadFormationUI;
 
 
     public Button SaveFormationDropDown,LoadFormationDropDown;
@@ -41,7 +42,7 @@ public class UIManager : MonoBehaviour
 
     public Button SideViewCamera, TopViewCamera, WireCamCamera, PressBoxView, FlipedViewCamera;
     public Color Selected, Unselected;
-    bool isMenuOpened;
+    public bool isMenuOpened;
     void Awake()
     {
         Instance = this;
@@ -84,7 +85,7 @@ public class UIManager : MonoBehaviour
         }
         if(currentPlayers >= 0)
         {
-            CurrentPlayerText.text = "Active Players in the field " + currentPlayers;
+            CurrentPlayerText.text = "Off : " + currentPlayers;
         }
         //if (isClicked)
         //{
@@ -228,7 +229,18 @@ public class UIManager : MonoBehaviour
         LoadPlayPopUp.DOAnchorPos(new Vector2(-756, -324), 0.5f);
        // LoadPlayPopUp.DOAnchorPos(new Vector2(0, 0), 0.5f);
     }
+    public void SaveFormationUIButtonAfterNewFormation(bool t)
+    {
+        if(t)
+        {
+            SaveFormationUI.DOAnchorPos(new Vector2(0, -53f), 0.5f);
+        }
+        else
+        {
+            SaveFormationUI.DOAnchorPos(new Vector2(0, 100), 0.5f);
 
+        }
+    }
     public void LoadFormation(bool t)
     {
         GameManager.Instance.RecenterCamerView();
@@ -259,7 +271,7 @@ public class UIManager : MonoBehaviour
         LoadPlayPopUp.DOAnchorPos(new Vector2(-1500, -324), 0.5f);
       //  LoadPlayPopUp.DOAnchorPos(new Vector2(0, 1000), 0.5f);
         ContinueNewPlayOrNewFormation.DOAnchorPos(new Vector2(0, 1000),0.5f);
-
+        SaveFormationUIButtonAfterNewFormation(false);
         NewFormatonAndPlay.DOAnchorPos(new Vector2(0, 1000), 0.5f);
 
 
