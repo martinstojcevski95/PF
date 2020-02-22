@@ -20,6 +20,8 @@ public class UIManager : MonoBehaviour
     public RectTransform LoadFormationPopUp;
     public RectTransform NewFormatonAndPlay;
     public RectTransform ContinueNewPlayOrNewFormation;
+    public RectTransform NewPlaySavePopUP;
+    public RectTransform UpdatePlayPopUp;
     public Canvas PopUpCanvas;
     public Button Planning;
     public Button View3D,View2D;
@@ -31,6 +33,8 @@ public class UIManager : MonoBehaviour
     public int currentPlayers;
 
     public RectTransform SaveFormationUI;
+    public RectTransform SaveUpdatedPlayUiTopButton;
+    public RectTransform SaveNewPlayUITopButton;
     public Button LoadFormationUI;
 
 
@@ -42,6 +46,9 @@ public class UIManager : MonoBehaviour
 
     public Button SideViewCamera, TopViewCamera, WireCamCamera, PressBoxView, FlipedViewCamera;
     public Color Selected, Unselected;
+    public Button CreateNewPlayPopUpButton;
+    public Button LoadFormationPopUpButton;
+    public Button UpdatePlayPopUpButton;
     public bool isMenuOpened;
     void Awake()
     {
@@ -125,6 +132,7 @@ public class UIManager : MonoBehaviour
         }
         else
         {
+            SaveFormationUI.DOAnchorPos(new Vector2(0, 100f), 0.5f);
             CameraMovement.Instance.InGame = true;
             Menu.DOAnchorPos(new Vector2(-190, -299.35f), 0.5f);
             isMenuOpened = true;
@@ -167,6 +175,36 @@ public class UIManager : MonoBehaviour
             SavePlayPopUp.DOAnchorPos(new Vector2(0, 1000), 0.5f);
 
     }
+
+    public void NewPlaySavePopUpInfo(bool t)
+    {
+        PopUpCanvas.enabled = t;
+
+        if (t)
+        {
+            NewPlaySavePopUP.DOAnchorPos(new Vector2(0, 0), 0.5f);
+        }
+        else
+        {
+            NewPlaySavePopUP.DOAnchorPos(new Vector2(0, 1000), 0.5f);
+        }
+    }
+
+    public void UpdatePlaySavePopUpInfo(bool t)
+    {
+        PopUpCanvas.enabled = t;
+
+        if (t)
+        {
+            UpdatePlayPopUp.DOAnchorPos(new Vector2(0, 0), 0.5f);
+        }
+        else
+        {
+            UpdatePlayPopUp.DOAnchorPos(new Vector2(0, 1000), 0.5f);
+        }
+    }
+
+
     public void  ContinueNewPlayOrMakeNewFormation(bool t)
     {
         PopUpCanvas.enabled = t;
@@ -245,6 +283,7 @@ public class UIManager : MonoBehaviour
     {
         GameManager.Instance.RecenterCamerView();
         PopUpCanvas.enabled = t;
+        SaveFormationUI.DOAnchorPos(new Vector2(0, 100f), 0.5f);
 
         CameraMovement.Instance.EnablePanning();
         if (t)
@@ -254,7 +293,7 @@ public class UIManager : MonoBehaviour
             LoadFormationPopUp.DOAnchorPos(new Vector2(0, 1000), 0.5f);
         }
         //  LoadFormationPopUp.gameObject.SetActive(t);
-
+        SaveNewPlayUITopButton.DOAnchorPos(new Vector2(0, 100f), 0.5f);
     }
     public void ButtonSelectedColorSwap(Button button)
     {
@@ -273,7 +312,10 @@ public class UIManager : MonoBehaviour
         ContinueNewPlayOrNewFormation.DOAnchorPos(new Vector2(0, 1000),0.5f);
         SaveFormationUIButtonAfterNewFormation(false);
         NewFormatonAndPlay.DOAnchorPos(new Vector2(0, 1000), 0.5f);
-
+        CreateNewPlayPopUpButton.gameObject.SetActive(false);
+        UpdatePlayPopUpButton.gameObject.SetActive(false);
+        NewPlaySavePopUpInfo(false);
+        LoadFormationPopUpButton.interactable = true;
 
     }
 

@@ -111,7 +111,7 @@ public class SinglePlayer : MonoBehaviour
             StartCoroutine(DelayedRun());
 
         }
-      
+
 
 
 
@@ -183,14 +183,22 @@ public class SinglePlayer : MonoBehaviour
                 //instantiate i assign kako child ako nema pointer counter brisi pointer odma !!!
                 if (playerStats.PlayerPointerType == "arrow")
                 {
-                    var newArrow = Instantiate(GameManager.Instance.ArrowPref, playerStats.PointerPosition, playerStats.PointerRotation);
-                    newArrow.tag = "POINTER";
+                    StartCoroutine(LatePointerDataPopulation("arrow", playerStats.PlayerID));
+
+                    //var newArrow = Instantiate(GameManager.Instance.ArrowPref, playerStats.PointerPosition, playerStats.PointerRotation);
+                    //Debug.Log(newArrow);
+                    //if(newArrow != null)
+                    //newArrow.tag = "POINTER";
+
                     //  newArrow.transform.parent = transform.GetChild(1).transform.parent;
                 }
                 else if (playerStats.PlayerPointerType == "block")
                 {
-                    var newBlock = Instantiate(GameManager.Instance.BlockPref, playerStats.PointerPosition, playerStats.PointerRotation);
-                    newBlock.tag = "POINTER";
+                    StartCoroutine(LatePointerDataPopulation("block",playerStats.PlayerID));
+                    //var newBlock = Instantiate(GameManager.Instance.BlockPref, playerStats.PointerPosition, playerStats.PointerRotation);
+                    //Debug.Log(newBlock);
+                    //if(newBlock != null)
+                    //newBlock.tag = "POINTER";
                     // newBlock.transform.parent = transform.GetChild(1).transform.parent;
                 }
             }
@@ -203,11 +211,41 @@ public class SinglePlayer : MonoBehaviour
         }
         else
         {
-            Debug.Log("sdsdsdsdsd");
             transform.position = playerStats.PlayerLocalPosition;
         }
     }
 
+
+
+    IEnumerator LatePointerDataPopulation(string type, int playerID)
+    {
+        if(type == "block")
+        {
+            var newBlock = Instantiate(GameManager.Instance.BlockPref, playerStats.PointerPosition, playerStats.PointerRotation);
+            Debug.Log(newBlock);
+            if (newBlock != null)
+            {
+                newBlock.tag = "POINTER";
+                yield return new WaitForSeconds(0.5f);
+                newBlock.AddComponent<Pointer>();
+                newBlock.GetComponent<Pointer>().SelectedPlayerPointerID = playerID;
+            }
+        }
+        if(type == "arrow")
+        {
+            var newArrow = Instantiate(GameManager.Instance.ArrowPref, playerStats.PointerPosition, playerStats.PointerRotation);
+            Debug.Log(newArrow);
+            if (newArrow != null)
+            {
+                newArrow.tag = "POINTER";
+                newArrow.AddComponent<Pointer>();
+                newArrow.GetComponent<Pointer>().SelectedPlayerPointerID = playerID;
+
+            }
+        }
+
+
+    }
     public void PreviewPlayOnlyWithoutPointers()
     {
         playerStats.CanMove = true; // to not be able to move the players after loading formation
@@ -484,7 +522,39 @@ public class SinglePlayer : MonoBehaviour
         //}
 
 
- 
+
+        Ray rayCast = Camera.main.ScreenPointToRay(Input.mousePosition);
+        RaycastHit HitInfo;
+        if (Physics.Raycast(rayCast, out HitInfo))
+        {
+
+            if (Input.GetMouseButtonDown(2))
+            {
+                var foundPlayer = HitInfo.transform.GetComponent<SinglePlayer>();
+                if (foundPlayer != null)
+                {
+                    foundPlayer.playerStats.Points.Clear();
+                    foundPlayer.renderer.positionCount = 0;
+                    var pointsandlines = GameObject.FindGameObjectsWithTag("POINTER");
+                    if(pointsandlines != null)
+                    {
+                        foreach (var item in pointsandlines)
+                        {
+                            if(item.GetComponent<Pointer>() != null)
+                            {
+                                if (item.GetComponent<Pointer>().SelectedPlayerPointerID == foundPlayer.playerStats.PlayerID)
+                                {
+                                    Destroy(item.gameObject);
+                                }
+                            }
+                      
+                        }
+                    }
+                  
+                }
+            }
+        }
+
 
     }
 

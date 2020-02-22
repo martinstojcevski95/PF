@@ -69,6 +69,7 @@ public class GameManager : MonoBehaviour
 
     bool InNewFormation;
     bool inDrawingMode;
+    public int SelectedPlayForUpdate;
     void Awake()
     {
         LoadingSpeed = 1 / 1.8f;
@@ -346,17 +347,245 @@ public class GameManager : MonoBehaviour
     }
 
 
+
+    /// <summary>
+    /// new formation from the menu. And opening the new save formation popup
+    /// </summary>
     public void NewFormationAndSaveFormation()
     {
         ReturnToDefaultFormation();
         UIManager.Instance.SaveFormationUIButtonAfterNewFormation(true);
         UIManager.Instance.Menu.DOAnchorPos(new Vector2(-190, -299.35f), 0.5f);
         UIManager.Instance.isMenuOpened = true;
-
         RecenterCamerView();
+
+
+        UIManager.Instance.SaveNewPlayUITopButton.DOAnchorPos(new Vector2(0, 100f), 0.5f);
 
     }
 
+
+    /// <summary>
+    /// Selecting the current formatio from the load formation dropdown and making the players ready for drawing
+    /// </summary>
+    /// <param name="formation"></param>
+    public void SelectFormationAndCreateNewPlay(Dropdown formation)
+    {
+
+
+        int menuIndex = formation.GetComponent<Dropdown>().value;
+        var formationname = formation.options[menuIndex].text;
+
+        if (formationname == "Choose formation")
+        {
+            UIManager.Instance.SelectTextType("Please select formation from the dropdown", "warrning", 3f);
+        }
+        else
+        {
+            foreach (var item in allFormations.AllFormmations)
+            {
+                if (item.FormationName == formationname)
+                {
+
+                    formationCounter = item.FormationID;
+                    DrawingMode();
+                    UIManager.Instance.LoadFormation(false);
+                    pathCreator.enabled = true;
+                    UIManager.Instance.CreateNewPlayPopUpButton.gameObject.SetActive(false);
+                    UIManager.Instance.SaveNewPlayUITopButton.DOAnchorPos(new Vector2(0, -53f), 0.5f);
+                    UIManager.Instance.SelectTextType("You are now drawing new play for the selected formation " + item.FormationName, "success", 3.5f);
+                }
+
+            }
+
+        }
+
+    }
+
+
+    /// <summary>
+    /// Saving the new play with the selected formation, and opening the new save new play popup
+    /// </summary>
+    /// <param name="playname"></param>
+    public void NewPlaySavingForNewFormation(InputField playname)
+    {
+
+        var newPlay = new Play();
+
+        newPlay.PlayName = playname.text;
+        newPlay.PlayID = allFormations.AllFormmations[formationCounter].FormationID;
+
+        newPlay.PlayName = playname.text;
+        newPlay.PlayID = allFormations.AllFormmations[formationCounter].FormationID;
+
+
+        if (allFormations.AllFormmations[formationCounter].LinkedPlaysWithFormation.Exists(name => name.PlayName == newPlay.PlayName))
+        {
+            UIManager.Instance.SelectTextType("Play with that name already exists in formation " + allFormations.AllFormmations[formationCounter].FormationName + " please choose  different name", "error", 3f);
+
+        }
+
+
+        else
+        {
+            InFormation = false;
+            var players = FindObjectsOfType<SinglePlayer>();
+
+            allFormations.AllFormmations[formationCounter].LinkedPlaysWithFormation.Add(newPlay);
+            playsCounter = allFormations.AllFormmations[formationCounter].LinkedPlaysWithFormation.Count;
+
+            if (players != null)
+            {
+                foreach (var item in players)
+                {
+                    item.Populate(formationCounter, playsCounter - 1);
+
+                }
+                StartCoroutine(DelayedSaveForNewPlay());
+            }
+
+
+        }
+        pathCreator.enabled = true;
+        UIManager.Instance.LoadFormationPopUpButton.interactable = true;
+    }
+
+    /// <summary>
+    /// after done with drawing, when clicking save new play in the pop up we save the data with delay
+    /// </summary>
+    /// <returns></returns>
+    IEnumerator DelayedSaveForNewPlay()
+    {
+        DestroyPointsAndLines();
+
+        yield return new WaitForSeconds(.5f);
+        string jsonData = JsonUtility.ToJson(allFormations);
+        File.WriteAllText(Application.dataPath + "/Formations-Plays.json", jsonData);
+        //  StartCoroutine(LateLoadEverything());
+
+        // NEW ADDED TODAY
+        UIManager.Instance.NewPlaySavePopUpInfo(false);
+        UIManager.Instance.SaveNewPlayUITopButton.DOAnchorPos(new Vector2(0, -53f), 0.5f);
+        pathCreator.lineRenderer.positionCount = 0;
+        DestroyPointsAndLines();
+        pathCreator.enabled = true;
+        pathCreator.PointerHolder.SetActive(false);
+    }
+
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public void CreateNewPlayUI()
+    {
+        ClearLoadedDataInSelectingUpdatePlay();
+        UIManager.Instance.LoadFormation(true);
+        UIManager.Instance.CreateNewPlayPopUpButton.interactable = true;
+        UIManager.Instance.CreateNewPlayPopUpButton.gameObject.SetActive(true);
+
+        UIManager.Instance.LoadFormationPopUpButton.interactable = false;
+        UIManager.Instance.Menu.DOAnchorPos(new Vector2(-190, -299.35f), 0.5f);
+        UIManager.Instance.SaveFormationUI.DOAnchorPos(new Vector2(0, 100f), 0.5f);
+        UIManager.Instance.SaveUpdatedPlayUiTopButton.DOAnchorPos(new Vector2(0, 100f), 0.5f);
+        UIManager.Instance.UpdatePlayPopUpButton.interactable = false;
+        UIManager.Instance.isMenuOpened = true;
+    }
+
+    /// <summary>
+    /// Update play from the menu. Clicking will open load formation with only update play buttons
+    /// </summary>
+    public void UpdatePlayUI()
+    {
+        ClearLoadedDataInSelectingUpdatePlay();
+        UIManager.Instance.SaveNewPlayUITopButton.DOAnchorPos(new Vector2(0, 100f), 0.5f);
+        UIManager.Instance.SaveFormationUI.DOAnchorPos(new Vector2(0, 100f), 0.5f);
+
+        UIManager.Instance.LoadFormation(true);
+        UIManager.Instance.Menu.DOAnchorPos(new Vector2(-190, -299.35f), 0.5f);
+
+        UIManager.Instance.UpdatePlayPopUpButton.interactable = true;
+        UIManager.Instance.UpdatePlayPopUpButton.gameObject.SetActive(true);
+        UIManager.Instance.CreateNewPlayPopUpButton.interactable = false;
+        UIManager.Instance.LoadFormationPopUpButton.interactable = false;
+        UIManager.Instance.isMenuOpened = true;
+    }
+
+
+    /// <summary>
+    /// Clicking on the update play button in Load Play popup. This will open the top ui update play button
+    /// </summary>
+    public void OpenUpdatePlayTopButton()
+    {
+        UIManager.Instance.SaveUpdatedPlayUiTopButton.DOAnchorPos(new Vector2(0, -53f), 0.5f);
+        pathCreator.enabled = true;
+    }
+
+    // SAV EEVERYTHIGN UNDER THE SAME PLAY AND UNDER THE SAME NAME, WE SHOULD KEEP THE SAME NAME OR BE ABLE TO PUT NEW ONE INSTEAD?
+    /// <summary>
+    /// On clicking on the Update play new pop up this will save the newly added data to the already selected formation and play
+    /// </summary>
+    public void UpdatePlay()
+    {
+        Debug.Log("updating play name " + allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[SelectedPlayForUpdate].PlayName);
+        //allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[SelectedPlayForUpdate].PlayName = "";
+        //allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[SelectedPlayForUpdate].PlayID = 0;
+        var newPlay = new Play();
+
+        newPlay.PlayName = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[SelectedPlayForUpdate].PlayName;
+        newPlay.PlayID = allFormations.AllFormmations[SelectedFormation].FormationID;
+
+        var players = FindObjectsOfType<SinglePlayer>();
+
+        allFormations.AllFormmations[formationCounter].LinkedPlaysWithFormation.Add(newPlay);
+        playsCounter = allFormations.AllFormmations[formationCounter].LinkedPlaysWithFormation.Count;
+        if (players != null)
+        {
+            foreach (var item in players)
+            {
+                item.Populate(formationCounter, playsCounter - 1);
+
+            }
+        }
+        StartCoroutine(LateSaveEverything());
+    }
+
+    
+    // MAYBE CHANGE THIS AND CLEAR ALL DATA TO EACH PLAYER AND DRAW NEW ONES AND SAVE THEM...
+    /// <summary>
+    /// Clicking on Update play in Load Play pop up, this will select the play, load it and go into drawing mode 
+    /// </summary>
+    /// <param name="play"></param>
+    public void ChoosePlayForUpdating(Dropdown play)
+    {
+        int menuIndex = play.GetComponent<Dropdown>().value - 1; // because there is choose plays value at index 0;
+        var playname = play.options[menuIndex].text;
+        SelectedPlayForUpdate = menuIndex;
+        int playersCountForPlay = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[menuIndex].LinkedPlayersWithPlays.Count;
+        Debug.Log(allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[menuIndex].PlayName);
+        DrawingMode();
+
+        var players = FindObjectsOfType<SinglePlayer>();
+        if (players != null)
+        {
+            for (int i = 0; i < playersCountForPlay; i++)
+            {
+                if (allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[menuIndex].LinkedPlayersWithPlays[i].PlayerID == players[i].playerStats.PlayerID)
+                {
+
+                    players[i].playerStats.Points = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[menuIndex].LinkedPlayersWithPlays[i].Points;
+                    players[i].playerStats.PlayerPointerType = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[menuIndex].LinkedPlayersWithPlays[i].PlayerPointerType;
+                    players[i].playerStats.PointerPosition = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[menuIndex].LinkedPlayersWithPlays[i].PointerPosition;
+                    players[i].playerStats.PointerRotation = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[menuIndex].LinkedPlayersWithPlays[i].PointerRotation;
+                    players[i].playerStats.PlayerLocalPosition = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[menuIndex].LinkedPlayersWithPlays[i].PlayerLocalPosition;
+                    players[i].LoadPlayData(SelectedFormation, menuIndex);
+                    players[i].LoadFormationData();
+
+                }
+            }
+        }
+
+        PLAYS.value = 0;
+    }
 
     public void ContinueDrawing()
     {
@@ -442,6 +671,12 @@ public class GameManager : MonoBehaviour
 
     }
 
+    public void FPSView()
+    {
+        CameraMovement.Instance.InFPSView = true; EnableOrDisableCollidersOnPlayers(false);
+        UIManager.Instance.SelectTextType("You are now in the First Person View", "success", 3f);
+    }
+
     public void PressView()
     {
         CameraMovement.Instance.InGame = false;
@@ -512,9 +747,39 @@ public class GameManager : MonoBehaviour
             inDrawingMode = false;
     }
 
+    public void ClearLoadedDataInSelectingUpdatePlay()
+    {
+
+        CameraMovement.Instance.isPanning = true;
+        for (int i = 0; i < allPlayers.Count; i++)
+        {
+            allPlayers[i].GetComponent<LineRenderer>().positionCount = 0;
+            allPlayers[i].playerNav.enabled = false;
+            allPlayers[i].pathMover.enabled = false;
+            allPlayers[i].playerStats.PointerCounter = 0;
+            allPlayers[i].playerStats.Points.Clear();
+            allPlayers[i].transform.position = allPlayers[i].playerStats.StartingPlayerLocalPosition;
+            allPlayers[i].playerStats.PlayerLocalPosition = allPlayers[i].playerStats.StartingPlayerLocalPosition;
+            allPlayers[i].playerStats.CanMove = false;
+            allPlayers[i].playerStats.HasDrawnedLine = false;
+        }
+
+        pathCreator.GetComponent<LineRenderer>().positionCount = 0;
+        pathCreator.enabled = false;
+        pathCreator.PointerHolder.SetActive(false);
+        DestroyPointsAndLines();
+        Camera.main.transform.position = CameraDefaultView;
+        Camera.main.transform.rotation = CameraDefaultRotation;
+        UIManager.Instance.View3D.interactable = false; // reset this because we don;t have active play
+        UIManager.Instance.CloseAllPopUps();
+        InFormation = true;
+        UIManager.Instance.RemoveLines.interactable = false;
+
+    }
+
     public void ReturnToDefaultFormation()
     {
-        UIManager.Instance.SelectTextType("Formation has be reseted to the default one. After done with positioning the players, click on the save formation button on the top middle ", "warning", 5f);
+        UIManager.Instance.SelectTextType("Formation has be reseted to the default one. After done with positioning the players, click on the save formation button on the top middle ", "warning", 6f);
 
         CameraMovement.Instance.isPanning = true;
         for (int i = 0; i < allPlayers.Count; i++)
@@ -556,7 +821,6 @@ public class GameManager : MonoBehaviour
         {
             if (item.FormationName.Contains(selectedItem.GetComponentInChildren<Text>().text))
             {
-                Debug.Log("wt");
                 selectedFormationIDForPreview = item.FormationID;
             }
 
@@ -659,6 +923,7 @@ public class GameManager : MonoBehaviour
                     PlaysNames.Add(allFormations.AllFormmations[item.FormationID].LinkedPlaysWithFormation[i].PlayName);
 
                 }
+                UIManager.Instance.CreateNewPlayPopUpButton.gameObject.SetActive(false);
 
             }
 
@@ -672,6 +937,7 @@ public class GameManager : MonoBehaviour
         UIManager.Instance.LoadFormation(false);
         UIManager.Instance.LoadPlayUI.interactable = true;
         CameraMovement.Instance.InGame = true;
+        UIManager.Instance.SaveNewPlayUITopButton.DOAnchorPos(new Vector2(0, 100f), 0.5f);
     }
 
     void Update()
@@ -867,6 +1133,14 @@ public class GameManager : MonoBehaviour
             UIManager.Instance.SelectTextType("Play has been saved!", "success", 2f);
             UIManager.Instance.SavePlay(false);
             UIManager.Instance.ContinueNewPlayOrMakeNewFormation(true);
+
+            // NEW ADDED TODAY
+            UIManager.Instance.NewPlaySavePopUpInfo(false);
+            UIManager.Instance.SaveNewPlayUITopButton.DOAnchorPos(new Vector2(0, -53f), 0.5f);
+            pathCreator.lineRenderer.positionCount = 0;
+            DestroyPointsAndLines();
+
+
             //    UIManager.Instance.View2D.interactable = false; // using this before
             // after you save a play 
         }
@@ -885,7 +1159,7 @@ public class GameManager : MonoBehaviour
         //    allPlayers[i].playerStats.Points.Clear();
         //    allPlayers[i].renderer.positionCount = 0;
         //}
-        yield return new WaitForSeconds(.5f);
+        yield return new WaitForSeconds(0.5f);
         string path = Application.dataPath + "/Formations-Plays.json";
         if (File.Exists(path))
         {
@@ -893,6 +1167,7 @@ public class GameManager : MonoBehaviour
             allFormations = JsonUtility.FromJson<AllFormations>(json);
 
             FORMATIONS.ClearOptions();
+            yield return new WaitForSeconds(.5f);
             for (int i = 0; i < allFormations.AllFormmations.Count; i++)
             {
 

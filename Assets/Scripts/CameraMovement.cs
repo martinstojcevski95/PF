@@ -136,15 +136,15 @@ public class CameraMovement : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.F))
         {
-            InFPSView = true;
-            GameManager.Instance.EnableOrDisableCollidersOnPlayers(false);
-            UIManager.Instance.SelectTextType("You are now in the First Person View", "success", 3f);
+            //InFPSView = true;
+            //GameManager.Instance.EnableOrDisableCollidersOnPlayers(false);
+            //UIManager.Instance.SelectTextType("You are now in the First Person View", "success", 3f);
 
         }
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             InFPSView = false;
-          //  GameManager.Instance.OverheadView();
+            GameManager.Instance.OverheadView();
             for (int i = 0; i < GameManager.Instance.allPlayers.Count; i++)
             {
                 GameManager.Instance.allPlayers[i].transform.position = GameManager.Instance.allPlayers[i].playerStats.PlayerLocalPosition;
