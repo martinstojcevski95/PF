@@ -527,27 +527,40 @@ public class GameManager : MonoBehaviour
     public void UpdatePlay()
     {
         Debug.Log("updating play name " + allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[SelectedPlayForUpdate].PlayName);
+        var selectedPlayNameForUpdating = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[SelectedPlayForUpdate].PlayName;
+        var selectedPlayIDForUpdating = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[SelectedPlayForUpdate].PlayID;
+      var allPlayersCountInPlay=   allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[SelectedPlayForUpdate].LinkedPlayersWithPlays.Count;
+        allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation.RemoveAt(SelectedPlayForUpdate);
+        //for (int i = 0; i < allPlayersCountInPlay; i++)
+        //{
+        //    allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[SelectedPlayForUpdate].LinkedPlayersWithPlays[i].Points.Clear();
+
+        //}
         //allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[SelectedPlayForUpdate].PlayName = "";
         //allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[SelectedPlayForUpdate].PlayID = 0;
+
+
         var newPlay = new Play();
 
-        newPlay.PlayName = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[SelectedPlayForUpdate].PlayName;
-        newPlay.PlayID = allFormations.AllFormmations[SelectedFormation].FormationID;
+        newPlay.PlayName = selectedPlayNameForUpdating;
+        newPlay.PlayID = selectedPlayIDForUpdating;
 
         var players = FindObjectsOfType<SinglePlayer>();
 
-        allFormations.AllFormmations[formationCounter].LinkedPlaysWithFormation.Add(newPlay);
-        playsCounter = allFormations.AllFormmations[formationCounter].LinkedPlaysWithFormation.Count;
+        allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation.Add(newPlay);
+        playsCounter = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation.Count;
         if (players != null)
         {
             foreach (var item in players)
             {
-                item.Populate(formationCounter, playsCounter - 1);
+                item.Populate(formationCounter, playsCounter-1);
 
             }
         }
-        StartCoroutine(LateSaveEverything());
+        StartCoroutine(DelayedSaveForNewPlay());
     }
+
+
 
     
     // MAYBE CHANGE THIS AND CLEAR ALL DATA TO EACH PLAYER AND DRAW NEW ONES AND SAVE THEM...
@@ -563,6 +576,7 @@ public class GameManager : MonoBehaviour
         int playersCountForPlay = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[menuIndex].LinkedPlayersWithPlays.Count;
         Debug.Log(allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[menuIndex].PlayName);
         DrawingMode();
+        pathCreator.lineRenderer.positionCount = 0;
 
         var players = FindObjectsOfType<SinglePlayer>();
         if (players != null)
@@ -571,20 +585,40 @@ public class GameManager : MonoBehaviour
             {
                 if (allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[menuIndex].LinkedPlayersWithPlays[i].PlayerID == players[i].playerStats.PlayerID)
                 {
-
-                    players[i].playerStats.Points = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[menuIndex].LinkedPlayersWithPlays[i].Points;
-                    players[i].playerStats.PlayerPointerType = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[menuIndex].LinkedPlayersWithPlays[i].PlayerPointerType;
-                    players[i].playerStats.PointerPosition = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[menuIndex].LinkedPlayersWithPlays[i].PointerPosition;
-                    players[i].playerStats.PointerRotation = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[menuIndex].LinkedPlayersWithPlays[i].PointerRotation;
-                    players[i].playerStats.PlayerLocalPosition = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[menuIndex].LinkedPlayersWithPlays[i].PlayerLocalPosition;
-                    players[i].LoadPlayData(SelectedFormation, menuIndex);
-                    players[i].LoadFormationData();
+                    players[i].playerStats.Points.Clear();
+                    players[i].renderer.positionCount = 0;
 
                 }
             }
         }
 
-        PLAYS.value = 0;
+
+                    //for (int i = 0; i < playersCountForPlay; i++)
+                    //{
+
+                    //    allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[SelectedPlayForUpdate].LinkedPlayersWithPlays[i].Points.Clear();
+                    //}
+                    //var players = FindObjectsOfType<SinglePlayer>();
+                    //if (players != null)
+                    //{
+                    //    for (int i = 0; i < playersCountForPlay; i++)
+                    //    {
+                    //        if (allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[menuIndex].LinkedPlayersWithPlays[i].PlayerID == players[i].playerStats.PlayerID)
+                    //        {
+
+                    //            players[i].playerStats.Points = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[menuIndex].LinkedPlayersWithPlays[i].Points;
+                    //            players[i].playerStats.PlayerPointerType = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[menuIndex].LinkedPlayersWithPlays[i].PlayerPointerType;
+                    //            players[i].playerStats.PointerPosition = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[menuIndex].LinkedPlayersWithPlays[i].PointerPosition;
+                    //            players[i].playerStats.PointerRotation = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[menuIndex].LinkedPlayersWithPlays[i].PointerRotation;
+                    //            players[i].playerStats.PlayerLocalPosition = allFormations.AllFormmations[SelectedFormation].LinkedPlaysWithFormation[menuIndex].LinkedPlayersWithPlays[i].PlayerLocalPosition;
+                    //            players[i].LoadPlayData(SelectedFormation, menuIndex);
+                    //            players[i].LoadFormationData();
+
+                    //        }
+                    //    }
+                    //}
+
+                    PLAYS.value = 0;
     }
 
     public void ContinueDrawing()

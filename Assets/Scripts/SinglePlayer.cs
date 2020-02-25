@@ -136,6 +136,8 @@ public class SinglePlayer : MonoBehaviour
             play.PlayerLocalPosition = playerStats.PlayerLocalPosition;// transform.position;
             Debug.Log("data for player " + playerStats.PlayerID + " formation and play" + GameManager.Instance.allFormations.AllFormmations[formationCountNumber].FormationName + GameManager.Instance.allFormations.AllFormmations[formationCountNumber].LinkedPlaysWithFormation[playsCounter].PlayName);
             GameManager.Instance.allFormations.AllFormmations[formationCountNumber].LinkedPlaysWithFormation[playsCounter].LinkedPlayersWithPlays.Add(play);
+            playerNav.enabled = false;
+            pathMover.enabled = false;
         }
         else
         {

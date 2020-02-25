@@ -316,7 +316,7 @@ public class UIManager : MonoBehaviour
         UpdatePlayPopUpButton.gameObject.SetActive(false);
         NewPlaySavePopUpInfo(false);
         LoadFormationPopUpButton.interactable = true;
-
+        UpdatePlaySavePopUpInfo(false);
     }
 
     IEnumerator Warnings(string DescriptionForTheInfo, string texttype, float waitTime)
